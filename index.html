@@ -324,7 +324,9 @@
     let userDefs = JSON.parse(localStorage.getItem('userDefs')) || {
       admin: { pwd:'rahasiaadmin', allowed:['*'] },
       budi:  { pwd:'budipwd',        allowed:['B99'] },
-      sari:  { pwd:'saripwd',        allowed:['BTA','BTC'] }
+      sari:  { pwd:'saripwd',        allowed:['BTA','BTC'] },
+		iwa:  { pwd:'iwaiwaiwa',        allowed:['BANDARA'] },
+		soni:  { pwd:'123456',        allowed:['IBL'] }
     };
 
     let pemeriksaList     = JSON.parse(localStorage.getItem('pemeriksaList'))    || defaultList.slice();
@@ -835,3 +837,4 @@
   </script>
 </body>
 </html>
+
