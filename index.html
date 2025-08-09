@@ -113,6 +113,7 @@
       <button id="btnBrowseHeader" class="small">Browse</button>
       <button id="btnSettingsHeader" class="small" style="display:none">Settings</button>
       <button id="btnAdminHeader" class="small" style="display:none">Admin</button>
+      <!-- Selalu tampil -->
       <button id="btnAccount" class="btn secondary small">Ganti Password</button>
       <button id="btnLogout" class="btn danger small">Logout</button>
     </div>
@@ -218,7 +219,7 @@
         <thead>
           <tr><th>Nama</th><th>Gudang</th><th>Aksi</th></tr>
         </thead>
-        <tbody id="adminBody"></tbody>
+      <tbody id="adminBody"></tbody>
       </table>
 
       <h4 style="margin-top:.8rem">Tambah Pemeriksa</h4>
@@ -232,7 +233,6 @@
 
       <div style="margin-top:.6rem;">
         <button id="btnClearHist" class="btn danger small">Hapus Semua Riwayat</button>
-        <!-- Reset Periode dihapus sesuai permintaan -->
       </div>
     </div>
   </div>
@@ -275,7 +275,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZ3hsaXNxZHRmbHhocXlyY3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzU4MDEsImV4cCI6MjA3MDMxMTgwMX0.3k1i4UMtgaqvs6B6QwefOEonsroQXv9m933_Dj3rkBs';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // === LIST GUDANG (sesuai yang kamu kirim) ===
+    // === LIST GUDANG ===
     const gudangList = ['HBB','BTA','B99','SEWU','DOMSEK','SEKUTER','GC','MARINA','BIROTIKA','BTC','POS','FEDEX','GLB','APLOG','DBM','IBL','AEI','RORO','PUNGGUR','KABIL','BANDARA','WH','NONGSA','BLP'];
 
     // Helpers DOM
@@ -331,7 +331,7 @@
         if (error) throw error;
         return data || [];
       } catch {
-        // fallback (mengandalkan RLS di tabel langsung)
+        // fallback (RLS di tabel langsung)
         let q = supabase.from('penunjukan_history').select('*').order('id',{ascending:false});
         if (nomor) q = q.eq('nomor', nomor);
         const { data } = await q;
@@ -413,7 +413,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
       showLogin();
 
-      // session awal (biar refresh nggak bikin tombol hilang)
+      // session awal
       const session = await getSession();
       if (session?.user) {
         hideLogin();
@@ -441,7 +441,7 @@
         }
       });
 
-      // Header actions -> pastikan modal sebelumnya tertutup
+      // Header actions
       el('btnBrowseHeader').onclick = ()=> openOverlay('browseOverlay');
       el('btnAccount').onclick = async ()=>{
         const u = await getUser();
@@ -479,14 +479,13 @@
             showToast('Email atau password salah', 'error');
             return;
           }
-          // sukses → onAuthStateChange yang menangani
         } finally {
           showLoading(false);
         }
       };
       el('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') el('loginBtn').click(); });
 
-      // Logout (selalu ada, merah) + konfirmasi + kosongkan field
+      // Logout
       el('btnLogout').onclick = async ()=>{
         if (!confirm('Yakin ingin logout?')) return;
         await supabase.auth.signOut();
@@ -512,7 +511,7 @@
           await addHistory({ nomor: nom, jenis: jen, gudang: gud, pemeriksa: nama });
           showToast('Berhasil menugaskan: ' + nama, 'success');
           await updateTotal();
-          await renderRiwayat(); // realtime juga akan trigger
+          await renderRiwayat();
         } catch(e){
           showToast('Gagal menugaskan: ' + (e?.message||e), 'error');
         } finally {
@@ -678,20 +677,36 @@
       };
       btnCancel.onclick = ()=>{ editingUserId=null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false); };
 
-      // Change password sendiri
+      // === Ganti Password — diperbaiki agar tidak "stuck memuat" & ada notifikasi sukses ===
       el('btnChangePass').onclick = async ()=>{
-        const p1 = el('accountNewPass').value, p2 = el('accountNewPass2').value;
-        if (!p1 || p1.length < 6) return showToast('Password minimal 6 karakter','error');
-        if (p1 !== p2) return showToast('Konfirmasi password tidak cocok','error');
+        const btn = el('btnChangePass');
+        const p1 = el('accountNewPass').value.trim();
+        const p2 = el('accountNewPass2').value.trim();
 
+        if (!p1 || p1.length < 6) return showToast('Password minimal 6 karakter','error');
+        if (p1 !== p2)           return showToast('Konfirmasi password tidak cocok','error');
+
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = 'Menyimpan…';
         showLoading(true, 'Menyimpan password…');
+
         try {
           const { error } = await supabase.auth.updateUser({ password: p1 });
-          if (error) return showToast('Gagal mengubah password: ' + error.message, 'error');
-          showToast('Password berhasil diubah','success'); // notifikasi sukses
+          if (error) {
+            showToast('Gagal mengubah password: ' + error.message, 'error');
+            return;
+          }
+          showToast('Password berhasil diubah','success');
+          el('accountNewPass').value = '';
+          el('accountNewPass2').value = '';
           el('accountOverlay').classList.remove('show');
+        } catch (e) {
+          showToast('Gagal mengubah password: ' + (e?.message || e), 'error');
         } finally {
-          showLoading(false); // pastikan loader tertutup
+          showLoading(false);
+          btn.disabled = false;
+          btn.textContent = originalText;
         }
       };
 
@@ -730,3 +745,4 @@
   -->
 </body>
 </html>
+
