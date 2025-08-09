@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Perekaman Kesiapan Barang</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gradient-bg: linear-gradient(135deg, #002244 0%, #003366 100%);
+      --panel-bg: #f7f8fa;
+      --text-dark: #333;
+      --text-muted: #666;
+      --accent-blue: #002d62;
+      --accent-gold: #d4af37;
+      --border: #dce0e6;
+      --radius: 8px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--gradient-bg);
+      color: var(--text-dark);
+      display: flex; flex-direction: column;
+      min-height: 100vh;
+    }
+    body.blurred > header,
+    body.blurred > main {
+      filter: blur(4px);
+      pointer-events: none;
+    }
+    header {
+      background: rgba(0,45,98,0.9);
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: var(--shadow);
+    }
+    .title-wrapper h1 { font-size: 1.8rem; font-weight: 600; }
+    .title-wrapper h2 {
+      font-size: 1rem; color: var(--accent-gold);
+      margin-top: .3rem; font-weight: 500;
+    }
+    .header-buttons button {
+      margin-left: .5rem;
+      background: transparent; color: #fff;
+      border: 2px solid #fff; padding: .5rem 1rem;
+      border-radius: var(--radius); cursor: pointer;
+      transition: background .2s;
+    }
+    .header-buttons button:hover { background: rgba(255,255,255,0.2); }
+    main {
+      flex: 1; max-width: 1000px; margin: 2rem auto; padding: 0 1rem;
+      display: grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
+      gap: 1.5rem;
+    }
+    .panel {
+      background: var(--panel-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .panel h3 {
+      margin-bottom: 1rem; color: var(--accent-blue);
+      font-size: 1.1rem; font-weight: 600; text-transform: uppercase;
+    }
+    label { display: block; margin-top: 1rem; font-size: .9rem; color: var(--text-muted); font-weight: 500; }
+    input, select {
+      width: 100%; padding: .6rem; margin-top: .3rem;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 1rem; background: #fff;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, select:focus {
+      outline: none; border-color: var(--accent-blue);
+      box-shadow: 0 0 6px rgba(0,45,98,0.3);
+    }
+    .btn {
+      display: inline-block; padding: .75rem 1.5rem; font-weight: 600;
+      font-size: .95rem; border-radius: 30px; border: none;
+      cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform .15s, box-shadow .15s;
+      margin-top: .8rem;
+    }
+    .btn.primary { background: var(--accent-gold); color: var(--accent-blue); }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); background: var(--accent-blue); color: #fff; }
+    .btn.secondary { background: transparent; color: var(--accent-blue); border: 2px solid var(--accent-blue); }
+    .btn.secondary:hover { background: var(--accent-blue); color: #fff; }
+    .btn.danger { background: #d9534f; color: #fff; }
+    .btn.danger:hover { background: #c12e2a; }
+    p.info { margin-top: .8rem; font-size: .95rem; color: var(--accent-blue); font-weight: 500; }
+
+    .table-wrapper {
+      max-height: 60vh; overflow-y: auto;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      margin-top: .5rem;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th, td { padding: .6rem; border-bottom: 1px solid var(--border); text-align: left; }
+    th { color: var(--accent-gold); cursor: pointer; position: sticky; top: 0; background: var(--panel-bg); }
+    tr:nth-child(even) { background: rgba(0,45,98,0.05); }
+
+    .overlay, .login-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4); display: none;
+      align-items: center; justify-content: center; padding: 1rem; z-index: 1000;
+    }
+    .overlay.show, .login-overlay.show { display: flex; }
+    .modal, .login-modal {
+      background: var(--panel-bg); border-radius: var(--radius);
+      padding: 2rem; width: 100%; max-width: 700px;
+      box-shadow: var(--shadow); position: relative;
+      max-height: 80vh; overflow-y: auto;
+      transform: translateY(-20px); opacity: 0;
+      transition: transform .2s, opacity .2s;
+    }
+    .overlay.show .modal, .login-overlay.show .login-modal { transform: translateY(0); opacity: 1; }
+    .close-btn {
+      position: absolute; top: 1rem; right: 1rem;
+      width: 24px; height: 24px; background: var(--accent-gold);
+      color: var(--accent-blue); border-radius: 50%;
+      text-align: center; line-height: 24px; cursor: pointer;
+      transition: background .2s; font-weight: 600;
+    }
+    .close-btn:hover { background: var(--accent-blue); color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-wrapper">
+      <h1>Perekaman Kesiapan Barang</h1>
+      <h2>KPU BC TIPE B BATAM</h2>
+    </div>
+    <div class="header-buttons">
+      <button id="btnBrowseHeader">Browse</button>
+      <button id="btnSettingsHeader">Settings</button>
+      <button id="btnAdminHeader">Admin</button>
+      <button id="btnLogout" class="btn secondary">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <h3>Input Penunjukan</h3>
+      <label for="nomor">Nomor Pendaftaran</label>
+      <input id="nomor" placeholder="10001234">
+      <label for="jenis">Jenis Dokumen</label>
+      <select id="jenis">
+        <option value="">-- Pilih --</option>
+        <option>01 LDP IN</option><option>01 LDP OUT</option><option>01 TLDPP</option>
+        <option>02 OUT</option><option>02 IN</option><option>03 IN</option>
+      </select>
+      <label for="gudang">Gudang</label>
+      <select id="gudang"><option value="">-- Pilih --</option></select>
+      <button id="btnTunjuk" class="btn primary">Tunjuk Pemeriksa</button>
+      <p class="info">Total Tersisa: <span id="totalTersisa">0</span></p>
+    </div>
+
+    <div class="panel">
+      <h3>Riwayat Penunjukan</h3>
+      <div class="table-wrapper">
+        <table id="riwayat">
+          <thead>
+            <tr>
+              <th>No</th><th>Nomor</th><th>Jenis</th><th>Gudang</th>
+              <th>Tanggal</th><th>Pemeriksa</th><th>Petugas</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Browse Modal -->
+  <div class="overlay" id="browseOverlay">
+    <div class="modal">
+      <span class="close-btn" id="browseClose">&times;</span>
+      <h3>Browse Penunjukan</h3>
+      <label>Nomor Pendaftaran</label>
+      <input id="browseNomor" placeholder="(kosong = semua)">
+      <button id="btnBrowseModal" class="btn primary">Tampilkan</button>
+      <div class="table-wrapper" style="margin-top:1rem;">
+        <table id="browseResults">
+          <thead>
+            <tr>
+              <th>No</th><th>Nomor</th><th>Jenis</th><th>Gudang</th>
+              <th>Tanggal</th><th>Pemeriksa</th><th>Petugas</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-modal">
+      <span class="close-btn" id="loginClose">&times;</span>
+      <h3>Login</h3>
+      <label>Username</label>
+      <input id="loginUser">
+      <label>Password</label>
+      <input id="loginPass" type="password">
+      <button id="loginBtn" class="btn primary">Masuk</button>
+    </div>
+  </div>
+
+  <!-- Admin Modal -->
+  <div class="overlay" id="adminOverlay">
+    <div class="modal">
+      <span class="close-btn" id="btnCloseAdmin">&times;</span>
+      <h3>Menu Admin</h3>
+      <p class="info">Total Pemeriksa: <strong><span id="adminTotal"></span></strong></p>
+      <label>Preview Pemeriksa Berikutnya</label>
+      <select id="adminGudangPreview"><option value="">-- Pilih --</option></select>
+      <p class="info">Selanjutnya: <strong><span id="adminNext">-</span></strong></p>
+      <table id="adminTable">
+        <thead>
+          <tr><th data-col="0">Nama</th><th data-col="1">Gudang</th><th>Aksi</th></tr>
+        </thead>
+        <tbody id="adminBody"></tbody>
+      </table>
+      <h4>Tambah Pemeriksa</h4>
+      <input id="newNama" placeholder="Nama baru">
+      <select id="newGudang"><option value="">-- Pilih --</option></select>
+      <button id="btnAdd" class="btn primary">Tambah</button>
+      <button id="btnUpd" class="btn secondary">Update</button>
+      <button id="btnClearHist" class="btn danger">Hapus Riwayat</button>
+      <button id="btnReset" class="btn secondary">Reset Periode</button>
+      <button id="btnDef" class="btn secondary">Reset Default</button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="overlay" id="settingsOverlay">
+    <div class="modal">
+      <span class="close-btn" id="settingsClose">&times;</span>
+      <h3>Setting User (Admin Only)</h3>
+      <table id="userTable" style="width:100%;margin-bottom:1rem;">
+        <thead><tr><th>Username</th><th>Password</th><th>Gudang</th><th>Aksi</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <h4>Tambah/Edit User</h4>
+      <label>Username</label>
+      <input id="userName" placeholder="e.g. budi">
+      <label>Password</label>
+      <input id="userPass" type="text">
+      <label>Allowed Gudang (Ctrl+klik untuk multi)</label>
+      <select id="userRoles" multiple size="5" style="width:100%;margin-top:.3rem;"></select>
+      <button id="btnSaveUser" class="btn primary">Simpan</button>
+      <button id="btnCancelUser" class="btn secondary">Batal</button>
+    </div>
+  </div>
+
+  <script>
+    const gudangList = [
+      "HBB","BTA","B99","SEWU","DOMSEK","SEKUTER","GC","MARINA",
+      "BIROTIKA","BTC","POS","FEDEX","GLB","APLOG","DBM","IBL",
+      "AEI","RORO","PUNGGUR","KABIL","BANDARA","WH","NONGSA","BLP"
+    ];
+
+    const defaultList = [
+      { nama:'Alif Noor Ganandhi', gudang:'HBB' },
+      { nama:'Sukma Satya Wardana', gudang:'HBB' },
+      { nama:'Bill Graham Arsenius', gudang:'HBB' },
+      { nama:'I Gede Yuda Mahendra', gudang:'HBB' },
+      { nama:'Alda Yolanda Putri', gudang:'HBB' },
+      { nama:'Alfiandi', gudang:'BTA' },
+      { nama:'Anggara Aji Pamungkas', gudang:'BTA' },
+      { nama:'Aji Jiyad Mustajab', gudang:'BTA' },
+      { nama:'Wahyu Hidayat', gudang:'BTA' },
+      { nama:'Aji Wibisono', gudang:'BTA' },
+      { nama:'Mohammad Ridho Artha', gudang:'BTA' },
+      { nama:'Benediktus Hasiholan Sihombing', gudang:'BTA' },
+      { nama:'Azkal Fikri', gudang:'BTA' },
+      { nama:'Muhammad Dekalvin Katra', gudang:'BTA' },
+      { nama:'Sorongan Hasahatan Sitepu', gudang:'B99' },
+      { nama:'Muhammad Saddam Alhusein', gudang:'B99' },
+      { nama:'Alvin Raditya Prana', gudang:'B99' },
+      { nama:'Eduar', gudang:'SEWU' },
+      { nama:'Dian Ahmad Setiawan Damanik', gudang:'DOMSEK' },
+      { nama:'Bahma Pradana Nurdin', gudang:'SEKUTER' },
+      { nama:'Rakhmadarianto', gudang:'SEKUTER' },
+      { nama:'Christian Gilbert Damanik', gudang:'SEKUTER' },
+      { nama:'Rifqi Rahman Wicaksono', gudang:'GC' },
+      { nama:'Kholdani Riat Siregar', gudang:'MARINA' },
+      { nama:'Baiquni Al – Farouq', gudang:'MARINA' },
+      { nama:'Muhammad Faris Irvin', gudang:'BIROTIKA' },
+      { nama:'Akbar Fachrurrozi Yogasugama', gudang:'BIROTIKA' },
+      { nama:'Cahya Edi Kurniawan', gudang:'BTC' },
+      { nama:'Muhammad Rafii Hidayat', gudang:'BTC' },
+      { nama:'Wildan Mutaqin', gudang:'BTC' },
+      { nama:'Yudha Prawira Lase', gudang:'BTC' },
+      { nama:'Steven Guido Purba', gudang:'BTC' },
+      { nama:'Linggom P. Tambunan', gudang:'BTC' },
+      { nama:'Azza Abdillah', gudang:'BTC' },
+      { nama:'Hanif Khusnul Atho', gudang:'BTC' },
+      { nama:'Djiefrizal', gudang:'POS' },
+      { nama:'Andy Reza Rohadian', gudang:'FEDEX' },
+      { nama:'Afrinaldi', gudang:'GLB' },
+      { nama:'Cakra Pratama Gulo', gudang:'APLOG' },
+      { nama:'Masytha', gudang:'DBM' },
+      { nama:'Soni Yuansyah', gudang:'IBL' },
+      { nama:'Ardi Triantama', gudang:'AEI' },
+      { nama:'Guntur Marpaung', gudang:'AEI' },
+      { nama:'Fredi Ganda Hutauruk', gudang:'RORO' },
+      { nama:'Muhammad Wendy Herawan', gudang:'RORO' },
+      { nama:'Jose Andreas Purba', gudang:'RORO' },
+      { nama:'Akhmad Yogi S.', gudang:'PUNGGUR' },
+      { nama:'Firdhaus Apriyanto', gudang:'PUNGGUR' },
+      { nama:'Andre Argadho Tampubolon', gudang:'KABIL' },
+      { nama:'Andy Ryan Pramana', gudang:'KABIL' },
+      { nama:'Iwa Kartiwa', gudang:'BANDARA' },
+      { nama:'Vian Yuda Arjuna', gudang:'BANDARA' },
+      { nama:'Rosliana Jalil', gudang:'BANDARA' },
+      { nama:'Ignatio Podhi Javlo', gudang:'BANDARA' },
+      { nama:'Birengga Harda Yudisthira', gudang:'BANDARA' },
+      { nama:'Deni Andriyanto', gudang:'WH' },
+      { nama:'Joel E I Tambunan', gudang:'NONGSA' },
+      { nama:'Doni Abdul Latif', gudang:'BLP' }
+    ];
+
+    let userDefs = JSON.parse(localStorage.getItem('userDefs')) || {
+  admin:{ pwd:'rahasiaadmin', allowed:['*'] },
+  budi:{  pwd:'budipwd',     allowed:['B99'] },
+  sari:{  pwd:'saripwd',     allowed:['BTA','BTC'] }
+};
+
+(function normalizeUserDefs(){
+  const out = {};
+  Object.entries(userDefs).forEach(([k,v])=>{
+    out[normUser(k)] = { pwd: v.pwd, allowed: (v.allowed||[]).slice() };
+  });
+  userDefs = out;
+  localStorage.setItem('userDefs', JSON.stringify(userDefs));
+})();
+
+
+    let pemeriksaList     = JSON.parse(localStorage.getItem('pemeriksaList'))    || defaultList.slice();
+    let penunjukanHistory = JSON.parse(localStorage.getItem('penunjukanHistory'))|| [];
+    let pools             = JSON.parse(localStorage.getItem('pools'))            || {};
+    let previewPick       = JSON.parse(localStorage.getItem('previewPick'))      || {};
+
+    function saveUsers(){ localStorage.setItem('userDefs', JSON.stringify(userDefs)); }
+    function savePools(){ localStorage.setItem('pools', JSON.stringify(pools)); }
+    function savePreview(){ localStorage.setItem('previewPick', JSON.stringify(previewPick)); }
+    
+    function normUser(u){ return (u||'').trim().toLowerCase(); }
+    function isAdminUser(){ return normUser(sessionStorage.currentUser) === 'admin'; }
+
+    function initPools() {
+      pools = {};
+      gudangList.forEach(g => {
+        pools[g] = pemeriksaList.filter(p=>p.gudang===g).map(p=>p.nama);
+      });
+      savePools();
+    }
+
+    function saveAll() {
+      localStorage.setItem('pemeriksaList', JSON.stringify(pemeriksaList));
+      localStorage.setItem('penunjukanHistory', JSON.stringify(penunjukanHistory));
+      savePools();
+      savePreview();
+      applyRole();
+      renderAdmin();
+      renderRiwayat();
+      updateTotal();
+    }
+
+    function getGudangOptions(selected='') {
+      return gudangList.map(g=>`<option${g===selected?' selected':''}>${g}</option>`).join('');
+    }
+
+    function getRemainingCount(g) {
+      if (!g) return 0;
+      const poolLen = (pools[g] && pools[g].length) ? pools[g].length : 0;
+      if (poolLen > 0) return poolLen;
+      // jika pool kosong (siklus selesai), tampilkan jumlah penuh untuk informasi
+      return pemeriksaList.filter(p=>p.gudang===g).length;
+    }
+
+    function updateTotal() {
+      const g = document.getElementById('gudang').value;
+      document.getElementById('totalTersisa').innerText = getRemainingCount(g);
+    }
+
+    function renderRiwayat() {
+      const user = sessionStorage.currentUser;
+      const isAdmin = user==='admin';
+      const rows = penunjukanHistory
+        .filter(r=> isAdmin || r.createdBy===user)
+        .map((r,i)=>`
+          <tr>
+            <td>${i+1}</td>
+            <td>${r.nomor}</td>
+            <td>${r.jenis}</td>
+            <td>${r.gudang}</td>
+            <td>${r.tanggal}</td>
+            <td>${r.pemeriksa}</td>
+            <td>${r.createdBy}</td>
+          </tr>`).join('');
+      document.querySelector('#riwayat tbody').innerHTML =
+        rows || '<tr><td colspan="7">Belum ada penunjukan</td></tr>';
+    }
+
+    function renderAdmin() {
+      document.getElementById('adminBody').innerHTML = pemeriksaList
+        .map((p,i)=>`
+          <tr data-index="${i}">
+            <td>${p.nama}</td>
+            <td>
+              <select data-index="${i}" class="selGudang">
+                <option value="">-- Pilih --</option>
+                ${getGudangOptions(p.gudang)}
+              </select>
+            </td>
+            <td><button data-index="${i}" class="btn danger btnDel">Hapus</button></td>
+          </tr>`).join('');
+      document.getElementById('newGudang').innerHTML =
+        '<option value="">-- Pilih --</option>' + getGudangOptions();
+      document.getElementById('adminGudangPreview').innerHTML =
+        '<option value="">-- Pilih --</option>' + getGudangOptions();
+      document.getElementById('adminTotal').innerText = pemeriksaList.length;
+    }
+
+    function renderUserTable() {
+      document.querySelector('#userTable tbody').innerHTML =
+        Object.entries(userDefs).map(([u,o])=>`
+          <tr data-user="${u}">
+            <td>${u}</td>
+            <td>${o.pwd}</td>
+            <td>${o.allowed.join(', ')}</td>
+            <td>
+              <button class="btn secondary btnEdit" data-user="${u}">Edit</button>
+              <button class="btn danger btnDelUser" data-user="${u}">Hapus</button>
+            </td>
+          </tr>`).join('');
+    }
+
+    function applyRole(){
+  const allowed = JSON.parse(sessionStorage.allowed||'[]');
+  const isAdmin = isAdminUser();
+  const sel = document.getElementById('gudang');
+  const gudangs = isAdmin ? gudangList : gudangList.filter(g=>allowed.includes(g));
+  sel.innerHTML = '<option value="">-- Pilih --</option>' + gudangs.map(g=>`<option>${g}</option>`).join('');
+  if(!isAdmin && allowed.length===1){ sel.value = allowed[0]; sel.disabled = true; } else { sel.disabled = false; }
+  document.getElementById('btnAdminHeader').style.display    = isAdmin ? '' : 'none';
+  document.getElementById('btnSettingsHeader').style.display = isAdmin ? '' : 'none';
+}
+
+
+    document.addEventListener('DOMContentLoaded',()=>{
+      if (!Object.keys(pools).length) initPools();
+      document.getElementById('gudang').innerHTML = '<option value="">-- Pilih --</option>'+getGudangOptions();
+      renderAdmin(); renderRiwayat();
+
+      // LOGIN
+      document.body.classList.add('blurred');
+      const loginOv = document.getElementById('loginOverlay');
+      const userIn  = document.getElementById('loginUser');
+      const passIn  = document.getElementById('loginPass');
+      const loginBtn= document.getElementById('loginBtn');
+      const logoutBtn=document.getElementById('btnLogout');
+      loginOv.classList.add('show');
+
+      loginBtn.onclick = () => {
+  const u = userIn.value.trim(), p = passIn.value;
+  if (userDefs[u] && userDefs[u].pwd === p) {
+    // set sesi & allowed
+    sessionStorage.currentUser = u;
+    sessionStorage.allowed = JSON.stringify(
+      userDefs[u].allowed.includes('*') ? gudangList : userDefs[u].allowed
+    );
+
+    // tutup login, hilangkan blur
+    loginOv.classList.remove('show');
+    document.body.classList.remove('blurred');
+
+    // terapkan role (lock gudang bila 1 gudang)
+    applyRole();
+
+    // PENTING: refresh riwayat agar hanya tampil milik user (kecuali admin)
+    renderRiwayat();
+
+    // update counter tersisa sesuai gudang (kalau role user 1 gudang akan otomatis terkunci)
+    updateTotal();
+  } else {
+    alert('User atau Password salah');
+    passIn.value = '';
+    passIn.focus();
+  }
+};
+      passIn.addEventListener('keydown', e=>{ if(e.key==='Enter') loginBtn.click(); });
+      logoutBtn.onclick = () => {
+  // bersihkan sesi user
+  sessionStorage.clear();
+
+  // kosongkan field login
+  userIn.value  = '';
+  passIn.value  = '';
+
+  // tampilkan layar login & blur belakang (logout button tetap terlihat — kita tidak sembunyikan)
+  document.body.classList.add('blurred');
+  loginOv.classList.add('show');
+};
+
+      // GUDANG CHANGE -> update tersisa
+      document.getElementById('gudang').addEventListener('change', updateTotal);
+
+      // TUNJUK PEMERIKSA (pakai pool global + preview global)
+      document.getElementById('btnTunjuk').onclick = ()=>{
+        const nom  = document.getElementById('nomor').value.trim();
+        const jen  = document.getElementById('jenis').value;
+        const gud  = document.getElementById('gudang').value;
+        const user = sessionStorage.currentUser;
+        if(!/^\d+$/.test(nom)) return alert('Nomor hanya boleh angka');
+        if(!jen||!gud) return alert('Lengkapi form');
+        if(penunjukanHistory.some(r=> r.nomor===nom && r.jenis===jen))
+          return alert('Penunjukan untuk nomor & jenis ini sudah ada');
+
+        if(!pools[gud] || pools[gud].length===0){
+          pools[gud] = pemeriksaList.filter(p=>p.gudang===gud).map(p=>p.nama);
+        }
+
+        const nama = previewPick[gud] ? previewPick[gud]
+                    : pools[gud][Math.floor(Math.random()*pools[gud].length)];
+
+        pools[gud] = pools[gud].filter(n=>n!==nama);
+        if (previewPick[gud]) { delete previewPick[gud]; savePreview(); }
+        savePools();
+
+        penunjukanHistory.push({
+          nomor: nom, jenis: jen, gudang: gud, pemeriksa: nama,
+          tanggal: new Date().toLocaleDateString('id-ID'), createdBy: user
+        });
+        localStorage.setItem('penunjukanHistory', JSON.stringify(penunjukanHistory));
+
+        updateTotal();
+        renderRiwayat();
+        alert(`Berhasil menugaskan: ${nama}`);
+      };
+
+      // BROWSE
+      const browseOv = document.getElementById('browseOverlay');
+      document.getElementById('btnBrowseHeader').onclick = ()=> browseOv.classList.add('show');
+      document.getElementById('browseClose').onclick = ()=> browseOv.classList.remove('show');
+      browseOv.onclick = e=>{ if(e.target===browseOv) browseOv.classList.remove('show'); };
+      document.getElementById('btnBrowseModal').onclick = ()=>{
+        const nom = document.getElementById('browseNomor').value.trim();
+        const user= sessionStorage.currentUser;
+        const isAdmin = user==='admin';
+        const rows = penunjukanHistory
+          .filter(r=> (!nom || r.nomor===nom) && (isAdmin || r.createdBy===user))
+          .map((r,i)=>`
+            <tr>
+              <td>${i+1}</td><td>${r.nomor}</td><td>${r.jenis}</td>
+              <td>${r.gudang}</td><td>${r.tanggal}</td>
+              <td>${r.pemeriksa}</td><td>${r.createdBy}</td>
+            </tr>`).join('') || '<tr><td colspan="7">Tidak ada data</td></tr>';
+        document.querySelector('#browseResults tbody').innerHTML = rows;
+      };
+
+      // ADMIN MODAL
+      const adminOv = document.getElementById('adminOverlay');
+      document.getElementById('btnAdminHeader').onclick = ()=>{
+        if(sessionStorage.currentUser!=='admin') return alert('Hanya admin');
+        adminOv.classList.add('show');
+      };
+      document.getElementById('btnCloseAdmin').onclick = ()=> adminOv.classList.remove('show');
+      adminOv.onclick = e=>{ if(e.target===adminOv) adminOv.classList.remove('show'); };
+
+      document.getElementById('btnAdd').onclick = ()=>{
+        const nm = document.getElementById('newNama').value.trim();
+        const gd = document.getElementById('newGudang').value;
+        if(!nm||!gd) return alert('Isi nama & gudang');
+        pemeriksaList.push({ nama:nm, gudang:gd });
+        localStorage.setItem('pemeriksaList', JSON.stringify(pemeriksaList));
+        // tambahkan juga ke pool siklus berikutnya (tidak mengubah pool berjalan)
+        if (!pools[gd]) pools[gd] = [];
+        renderAdmin(); updateTotal();
+        document.getElementById('adminTotal').innerText = pemeriksaList.length;
+      };
+
+      document.getElementById('btnUpd').onclick = ()=>{
+        document.querySelectorAll('.selGudang').forEach(sel=>{
+          pemeriksaList[sel.dataset.index].gudang = sel.value;
+        });
+        localStorage.setItem('pemeriksaList', JSON.stringify(pemeriksaList));
+        // Rebuild pool hanya kalau siklus berikutnya (tidak mengganggu pool berjalan sekarang)
+        // Di sini kita biarkan pools tetap, agar rekonsiliasi antar user tetap konsisten sampai siklus habis
+        renderAdmin(); updateTotal();
+      };
+
+      document.getElementById('adminBody').onclick = e=>{
+        if(e.target.classList.contains('btnDel')){
+          const idx = e.target.dataset.index;
+          const removed = pemeriksaList.splice(idx,1)[0];
+          localStorage.setItem('pemeriksaList', JSON.stringify(pemeriksaList));
+          // Hapus dari pool yang tersisa (kalau dia belum dipilih)
+          if (removed && pools[removed.gudang]) {
+            pools[removed.gudang] = pools[removed.gudang].filter(n=>n!==removed.nama);
+            savePools();
+          }
+          renderAdmin(); updateTotal();
+        }
+      };
+
+      document.getElementById('btnClearHist').onclick = ()=>{
+        if(confirm('Hapus seluruh riwayat?')){
+          penunjukanHistory = [];
+          localStorage.setItem('penunjukanHistory', JSON.stringify(penunjukanHistory));
+          renderRiwayat();
+        }
+      };
+
+      document.getElementById('btnReset').onclick = () => {
+  if (!confirm('Reset periode? (mengosongkan pool; siklus diulang dan mapping gudang pemeriksa dikosongkan)')) return;
+
+  // 1) Kosongkan gudang tiap pemeriksa -> select admin akan tampil "-- Pilih --"
+  pemeriksaList.forEach(p => p.gudang = '');
+
+  // 2) Reset pool & preview global
+  pools = {};
+  previewPick = {};
+  localStorage.setItem('pemeriksaList', JSON.stringify(pemeriksaList));
+  localStorage.setItem('pools', JSON.stringify(pools));
+  localStorage.setItem('previewPick', JSON.stringify(previewPick));
+
+  // 3) Refresh UI (admin & halaman awal)
+  renderAdmin();
+  // kosongkan pilihan gudang di form depan (admin tetap bisa pilih manual; user non-admin tetap terkunci di rolenya saat login berikutnya)
+  const selGud = document.getElementById('gudang');
+  if (selGud) selGud.value = '';
+  updateTotal();
+
+  alert('Reset periode berhasil. Gudang setiap pemeriksa menjadi "-- Pilih --".');
+};
+
+      document.getElementById('btnDef').onclick = ()=>{
+        if(confirm('Reset default? (kembalikan daftar & hapus riwayat; pool baru)')){
+          pemeriksaList     = defaultList.slice();
+          localStorage.setItem('pemeriksaList', JSON.stringify(pemeriksaList));
+          initPools(); previewPick = {}; savePreview();
+          renderAdmin(); renderRiwayat(); updateTotal();
+          alert('Daftar kembali ke default & riwayat dihapus.');
+        }
+      };
+
+      document.querySelectorAll('#adminTable th[data-col]').forEach(th=>{
+        th.onclick = ()=>{
+          const col = +th.dataset.col;
+          pemeriksaList.sort((a,b)=> a[col===0?'nama':'gudang'].localeCompare(b[col===0?'nama':'gudang']));
+          localStorage.setItem('pemeriksaList', JSON.stringify(pemeriksaList));
+          renderAdmin();
+        };
+      });
+
+      // PREVIEW ADMIN: sinkron global via localStorage previewPick
+      document.getElementById('adminGudangPreview').onchange = function(){
+        const g = this.value;
+        const out = document.getElementById('adminNext');
+        if(!g){ out.innerText='-'; return; }
+
+        // Jika pool kosong, admin tetap melihat calon dari pengisian ulang penuh (tanpa mengubah pool saat ini)
+        let candidates = [];
+        if (!pools[g] || pools[g].length===0) {
+          candidates = pemeriksaList.filter(p=>p.gudang===g).map(p=>p.nama);
+        } else {
+          candidates = pools[g].slice(); // copy
+        }
+        if (candidates.length===0){ out.innerText='-'; return; }
+
+        const cand = candidates[Math.floor(Math.random()*candidates.length)];
+        previewPick[g] = cand;
+        savePreview();
+        out.innerText = cand;
+      };
+
+      // SETTINGS (User & Roles)
+      const setOv      = document.getElementById('settingsOverlay');
+      const setBtn     = document.getElementById('btnSettingsHeader');
+      const setClose   = document.getElementById('settingsClose');
+      const userTable  = document.querySelector('#userTable tbody');
+      const userRoles  = document.getElementById('userRoles');
+      const userNameIn = document.getElementById('userName');
+      const userPassIn = document.getElementById('userPass');
+      const saveUser   = document.getElementById('btnSaveUser');
+      const cancelUser = document.getElementById('btnCancelUser');
+
+      function renderUserTable(){ 
+        document.querySelector('#userTable tbody').innerHTML =
+          Object.entries(userDefs).map(([u,o])=>`
+            <tr data-user="${u}">
+              <td>${u}</td>
+              <td>${o.pwd}</td>
+              <td>${o.allowed.join(', ')}</td>
+              <td>
+                <button class="btn secondary btnEdit" data-user="${u}">Edit</button>
+                <button class="btn danger btnDelUser" data-user="${u}">Hapus</button>
+              </td>
+            </tr>`).join('');
+      }
+
+      setBtn.onclick = ()=>{
+        if(sessionStorage.currentUser!=='admin') return alert('Hanya admin');
+        setOv.classList.add('show');
+        userRoles.innerHTML = gudangList.map(g=>`<option value="${g}">${g}</option>`).join('');
+        renderUserTable();
+      };
+      setClose.onclick = ()=> setOv.classList.remove('show');
+      setOv.onclick    = e=>{ if(e.target===setOv) setOv.classList.remove('show'); };
+
+      userTable.onclick = (e) => {
+  	const u = e.target.dataset.user;
+  	if (!u) return;
+
+  	// Edit user
+  	if (e.target.classList.contains('btnEdit')) {
+  	  editingUser = u;                      // masuk mode edit
+  	  userNameIn.value = u;
+  	  userPassIn.value = userDefs[u].pwd;
+
+   	 // Preselect gudang: jika admin ('*'), pilihkan semuanya agar terlihat jelas
+  	  const allowed = userDefs[u].allowed || [];
+  	  const isAdminUser = u === 'admin' || allowed.includes('*');
+  	  Array.from(userRoles.options).forEach(opt => {
+   	   opt.selected = isAdminUser ? true : allowed.includes(opt.value);
+   	 });
+    	return;
+  	}	
+
+  	// Hapus user
+  	if (e.target.classList.contains('btnDelUser')) {
+ 	   if (u === 'admin') { alert('Tidak bisa menghapus admin.'); return; }
+ 	   if (!confirm(`Hapus user "${u}"?`)) return;
+
+ 	   delete userDefs[u];
+ 	   saveUsers();
+ 	   renderUserTable();
+
+ 	   // Jika yang dihapus adalah user yang sedang login, paksa logout
+ 	   if (sessionStorage.currentUser === u) {
+ 	     sessionStorage.clear();
+ 	     document.body.classList.add('blurred');
+ 	     document.getElementById('loginOverlay').classList.add('show');
+ 	   }
+ 	 }
+	};
+
+
+      saveUser.onclick = () => {
+  	const newUsername = userNameIn.value.trim();
+  	const newPwd      = userPassIn.value;
+  	const newAllowed  = Array.from(userRoles.selectedOptions).map(o => o.value);
+
+  	if (!newUsername || !newPwd) {
+  	  alert('Username dan password wajib diisi.');
+  	  return;
+  	}
+
+  	// Admin selalu punya akses semua gudang
+  	const isEditingAdmin = editingUser === 'admin';
+  	const willBeAdmin    = newUsername === 'admin';
+  	const finalAllowed   = willBeAdmin ? ['*'] : newAllowed;
+
+  	if (!willBeAdmin && finalAllowed.length === 0) {
+  	  alert('Pilih minimal satu gudang untuk user non-admin.');
+  	  return;
+  	}
+
+  // MODE EDIT
+  if (editingUser) {
+    // Larang rename admin jadi nama lain
+    if (isEditingAdmin && newUsername !== 'admin') {
+      alert('Tidak boleh mengganti username "admin".');
+      return;
+    }
+
+    // Jika mengganti username ke nama yang sudah dipakai user lain
+    if (newUsername !== editingUser && userDefs[newUsername]) {
+      alert('Username sudah digunakan user lain.');
+      return;
+    }
+
+    // Hapus key lama jika rename
+    if (newUsername !== editingUser) {
+      delete userDefs[editingUser];
+    }
+
+    // Simpan user (admin -> allowed selalu '*')
+    userDefs[newUsername] = { pwd: newPwd, allowed: finalAllowed };
+    saveUsers();
+
+    // Jika user yang sedang login diubah usernamenya, sinkronkan sesi
+    if (sessionStorage.currentUser === editingUser) {
+      sessionStorage.currentUser = newUsername;
+      sessionStorage.allowed = JSON.stringify(
+        finalAllowed.includes('*') ? gudangList : finalAllowed
+      );
+      applyRole();
+      renderRiwayat();
+    }
+
+    editingUser = null; // keluar mode edit
+    renderUserTable();
+
+    // Bersihkan form
+    userNameIn.value = '';
+    userPassIn.value = '';
+    Array.from(userRoles.options).forEach(o => o.selected = false);
+
+    alert('Perubahan user berhasil disimpan.');
+    return;
+  }
+
+  // MODE TAMBAH
+  if (userDefs[newUsername]) {
+    alert('Username sudah ada. Gunakan tombol Edit untuk mengubah.');
+    return;
+  }
+
+  userDefs[newUsername] = { pwd: newPwd, allowed: finalAllowed };
+  saveUsers();
+  renderUserTable();
+
+  // Bersihkan form
+  userNameIn.value = '';
+  userPassIn.value = '';
+  Array.from(userRoles.options).forEach(o => o.selected = false);
+
+  alert('User baru berhasil ditambahkan.');
+};
+
+      cancelUser.onclick = ()=>{
+        userNameIn.value=''; userPassIn.value='';
+        Array.from(userRoles.options).forEach(o=>o.selected=false);
+      };
+    });
+  </script>
+</body>
+</html>
