@@ -61,8 +61,8 @@
     </div>
     <div class="header-buttons">
       <button id="btnBrowseHeader">Browse</button>
-      <button id="btnSettingsHeader">Settings</button>
-      <button id="btnAdminHeader">Admin</button>
+      <button id="btnSettingsHeader" style="display:none;">Settings</button>
+      <button id="btnAdminHeader" style="display:none;">Admin</button>
       <button id="btnLogout" class="btn secondary">Logout</button>
     </div>
   </header>
@@ -168,42 +168,41 @@
     </div>
   </div>
 
-<!-- Settings Modal -->
-<div class="overlay" id="settingsOverlay">
-  <div class="modal">
-    <span class="close-btn" id="settingsClose">&times;</span>
-    <h3>Setting User (Admin)</h3>
-    <p style="margin:.3rem 0 .8rem;color:#666">
-      Tambah/hapus user & ganti password tetap lewat <b>Supabase → Auth → Users</b> (aman). 
-      Dari sini admin bisa atur <b>akses gudang</b> tiap user.
-    </p>
+  <!-- Settings Modal -->
+  <div class="overlay" id="settingsOverlay">
+    <div class="modal">
+      <span class="close-btn" id="settingsClose">&times;</span>
+      <h3>Setting User (Admin)</h3>
+      <p style="margin:.3rem 0 .8rem;color:#666">
+        Tambah/hapus user & ganti password tetap lewat <b>Supabase → Auth → Users</b> (aman).
+        Dari sini admin bisa atur <b>akses gudang</b> tiap user.
+      </p>
 
-    <table id="userTable" style="width:100%;margin-bottom:1rem;">
-      <thead><tr><th>Email</th><th>Role</th><th>Gudang</th><th>Aksi</th></tr></thead>
-      <tbody></tbody>
-    </table>
+      <table id="userTable" style="width:100%;margin-bottom:1rem;">
+        <thead><tr><th>Email</th><th>Role</th><th>Gudang</th><th>Aksi</th></tr></thead>
+        <tbody></tbody>
+      </table>
 
-    <h4>Ubah Akses Gudang</h4>
-    <label>Email</label>
-    <input id="userName" placeholder="Pilih user lewat tombol Edit di tabel" disabled>
-    <label>Allowed Gudang (Ctrl/⌘ + klik bisa multi)</label>
-    <select id="userRoles" multiple size="6" style="width:100%;margin-top:.3rem;"></select>
+      <h4>Ubah Akses Gudang</h4>
+      <label>Email</label>
+      <input id="userName" placeholder="Pilih user lewat tombol Edit di tabel" disabled>
+      <label>Allowed Gudang (Ctrl/⌘ + klik bisa multi)</label>
+      <select id="userRoles" multiple size="6" style="width:100%;margin-top:.3rem;"></select>
 
-    <div style="margin-top:.6rem;">
-      <button id="btnSaveUser" class="btn primary">Simpan</button>
-      <button id="btnCancelUser" class="btn secondary">Batal</button>
+      <div style="margin-top:.6rem;">
+        <button id="btnSaveUser" class="btn primary">Simpan</button>
+        <button id="btnCancelUser" class="btn secondary">Batal</button>
+      </div>
     </div>
   </div>
-</div>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // === KUNCI PROYEK KAMU (SUDAH DIISI) ===
+    // === KUNCI PROYEK KAMU ===
     const SUPABASE_URL = 'https://dbgxlisqdtflxhqyrctz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZ3hsaXNxZHRmbHhocXlyY3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzU4MDEsImV4cCI6MjA3MDMxMTgwMX0.3k1i4UMtgaqvs6B6QwefOEonsroQXv9m933_Dj3rkBs';
 
-    // === INIT SUPABASE ===
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // === KONSTAN ===
@@ -234,8 +233,7 @@
 
     // === DATA HELPERS ===
     async function listHistory({ nomor }={}){
-      const user = await me();
-      const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+      const user = await me(); if(!user) return [];
       let q = supabase.from('penunjukan_history').select('*').order('id', { ascending:false });
       if (nomor) q = q.eq('nomor', nomor);
       const { data, error } = await q; if (error) throw error; return data || [];
@@ -283,9 +281,11 @@
       const sel = el('gudang');
       const list = acc.admin ? gudangList : gudangList.filter(g => acc.allowed.includes(g));
       sel.innerHTML = '<option value="">-- Pilih --</option>' + list.map(g=>`<option>${g}</option>`).join('');
-      if(!acc.admin && list.length===1){ sel.value = list[0]; sel.disabled = true; updateTotal(); }
-      el('btnAdminHeader').style.display = acc.admin ? '' : 'none';
-      el('btnSettingsHeader').style.display = acc.admin ? '' : '';
+      if(!acc.admin && list.length===1){ sel.value = list[0]; sel.disabled = true; await updateTotal(); }
+      // tampilkan tombol sesuai role
+      el('btnAdminHeader').style.display    = acc.admin ? '' : 'none';
+      el('btnSettingsHeader').style.display = acc.admin ? '' : 'none';
+      // dropdown yang lain
       el('newGudang').innerHTML = '<option value="">-- Pilih --</option>' + gudangList.map(g=>`<option>${g}</option>`).join('');
       el('adminGudangPreview').innerHTML = '<option value="">-- Pilih --</option>' + gudangList.map(g=>`<option>${g}</option>`).join('');
     }
@@ -321,26 +321,38 @@
         el('loginOverlay').classList.remove('show'); document.body.classList.remove('blurred');
         await applyRoleAndGudang();
         await renderRiwayat();
+        await updateTotal();
       });
 
+      // LOGIN
       el('loginBtn').onclick = async () => {
-        try { await signIn(el('loginUser').value.trim(), el('loginPass').value); }
-        catch(e){ alert('Login gagal: ' + (e?.message||e)); console.error(e); }
+        try {
+          let loginId = el('loginUser').value.trim();
+          // opsional: dukung username tanpa '@'
+          // if (!loginId.includes('@')) loginId = `${loginId}@pkbbatam.local`;
+          await signIn(loginId, el('loginPass').value);
+        } catch(e){
+          alert('Login gagal: ' + (e?.message||e)); console.error(e);
+        }
       };
       el('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') el('loginBtn').click(); });
-      el('loginClose').onclick = ()=>{};
+      el('loginClose').onclick = ()=>{}; // jangan ditutup
 
+      // LOGOUT
       el('btnLogout').onclick = async () => { await signOut(); };
 
+      // INPUT
       el('gudang').addEventListener('change', updateTotal);
 
+      // TUNJUK
       el('btnTunjuk').onclick = async () => {
         const nom = el('nomor').value.trim();
         const jen = el('jenis').value; const gud = el('gudang').value;
         if(!/^\d+$/.test(nom)) return alert('Nomor hanya boleh angka');
         if(!jen || !gud) return alert('Lengkapi form');
         try {
-          const { data: exist } = await supabase.from('penunjukan_history').select('id').eq('nomor', nom).eq('jenis', jen).limit(1);
+          const { data: exist, error: e1 } = await supabase.from('penunjukan_history').select('id').eq('nomor', nom).eq('jenis', jen).limit(1);
+          if (e1) throw e1;
           if (exist && exist.length) return alert('Penunjukan untuk nomor & jenis ini sudah ada');
 
           const nama = await pickNama(gud);
@@ -351,6 +363,7 @@
         } catch(e){ alert('Gagal menugaskan: ' + (e?.message||e)); console.error(e); }
       };
 
+      // BROWSE
       const browseOv = el('browseOverlay');
       el('btnBrowseHeader').onclick = ()=> browseOv.classList.add('show');
       el('browseClose').onclick = ()=> browseOv.classList.remove('show');
@@ -367,6 +380,7 @@
           </tr>`).join('') : '<tr><td colspan="7">Tidak ada data</td></tr>';
       };
 
+      // ADMIN
       const adminOv = el('adminOverlay');
       el('btnAdminHeader').onclick = async ()=>{
         const user = await me(); if(!user) return alert('Silakan login');
@@ -447,119 +461,115 @@
         } catch(e){ alert(e.message||'Gagal reset'); }
       };
 
-      // SETTINGS (User & Roles) — versi Supabase
-const setOv      = el('settingsOverlay');
-const setBtn     = el('btnSettingsHeader');
-const setClose   = el('settingsClose');
-const userTable  = document.querySelector('#userTable tbody');
-const userRoles  = document.getElementById('userRoles');
-const userNameIn = document.getElementById('userName');
-const saveUser   = document.getElementById('btnSaveUser');
-const cancelUser = document.getElementById('btnCancelUser');
+      // SETTINGS (User & Roles)
+      const setOv = el('settingsOverlay');
+      const setBtn = el('btnSettingsHeader');
+      const setClose = el('settingsClose');
+      const userTableEl = document.getElementById('userTable');
+      const userTableBody = userTableEl.querySelector('tbody');
+      const userRoles = document.getElementById('userRoles');
+      const userNameIn = document.getElementById('userName');
+      const saveUser = document.getElementById('btnSaveUser');
+      const cancelUser = document.getElementById('btnCancelUser');
 
-let usersCache = [];
-let rolesMap   = {};  // user_id -> [gudang]
-let editingUserId = null;
+      let usersCache = [];
+      let rolesMap = {};   // user_id -> [gudang]
+      let editingUserId = null;
 
-function fillGudangOptions(){
-  userRoles.innerHTML = gudangList.map(g=>`<option value="${g}">${g}</option>`).join('');
-}
+      function fillGudangOptions(){
+        userRoles.innerHTML = gudangList.map(g=>`<option value="${g}">${g}</option>`).join('');
+      }
 
-async function loadUsersAndRoles(){
-  const { data: users, error: e1 } = await supabase.from('profiles').select('id, username, role').order('username');
-  if(e1) throw e1;
-  usersCache = users || [];
+      async function loadUsersAndRoles(){
+        const { data: users, error: e1 } = await supabase.from('profiles').select('id, username, role').order('username');
+        if(e1) throw e1;
+        usersCache = users || [];
 
-  const { data: rbg, error: e2 } = await supabase.from('roles_by_gudang').select('user_id, gudang');
-  if(e2) throw e2;
+        const { data: rbg, error: e2 } = await supabase.from('roles_by_gudang').select('user_id, gudang');
+        if(e2) throw e2;
 
-  rolesMap = {};
-  (rbg||[]).forEach(r => {
-    if(!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
-    rolesMap[r.user_id].push(r.gudang);
-  });
-}
+        rolesMap = {};
+        (rbg||[]).forEach(r => {
+          if(!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
+          rolesMap[r.user_id].push(r.gudang);
+        });
+      }
 
-function renderUserTable(){
-  userTable.innerHTML = (usersCache||[]).map(u => `
-    <tr data-id="${u.id}">
-      <td>${u.username||'(tanpa email)'}</td>
-      <td>${u.role}</td>
-      <td>${(rolesMap[u.id]||[]).join(', ')}</td>
-      <td>
-        <button class="btn secondary btnEdit" data-id="${u.id}">Edit</button>
-        <button class="btn danger btnClear" data-id="${u.id}">Kosongkan Gudang</button>
-      </td>
-    </tr>
-  `).join('');
-}
+      function renderUserTable(){
+        userTableBody.innerHTML = (usersCache||[]).map(u => `
+          <tr data-id="${u.id}">
+            <td>${u.username||'(tanpa email)'}</td>
+            <td>${u.role}</td>
+            <td>${(rolesMap[u.id]||[]).join(', ')}</td>
+            <td>
+              <button class="btn secondary btnEdit" data-id="${u.id}">Edit</button>
+              <button class="btn danger btnClear" data-id="${u.id}">Kosongkan Gudang</button>
+            </td>
+          </tr>
+        `).join('');
+      }
 
-setBtn.onclick = async ()=>{
-  // hanya admin
-  const user = await me(); if(!user) return alert('Silakan login');
-  const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-  if (prof?.role !== 'admin') return alert('Hanya admin');
+      setBtn.onclick = async ()=>{
+        const user = await me(); if(!user) return alert('Silakan login');
+        const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        if (prof?.role !== 'admin') return alert('Hanya admin');
 
-  setOv.classList.add('show');
-  fillGudangOptions();
-  try {
-    await loadUsersAndRoles();
-    renderUserTable();
-  } catch(e){ alert(e.message||'Gagal load users'); }
-};
+        setOv.classList.add('show');
+        fillGudangOptions();
+        try {
+          await loadUsersAndRoles();
+          renderUserTable();
+        } catch(e){ alert(e.message||'Gagal load users'); }
+      };
 
-setClose.onclick = ()=> setOv.classList.remove('show');
-setOv.onclick    = e=>{ if(e.target===setOv) setOv.classList.remove('show'); };
+      setClose.onclick = ()=> setOv.classList.remove('show');
+      setOv.onclick    = e=>{ if(e.target===setOv) setOv.classList.remove('show'); };
 
-document.querySelector('#userTable').onclick = (e)=>{
-  const id = e.target.dataset.id;
-  if(!id) return;
+      // Delegasi klik pada tabel (Edit / Kosongkan)
+      userTableEl.addEventListener('click', async (e)=>{
+        const btn = e.target.closest('button'); if(!btn) return;
+        const id = btn.dataset.id; if(!id) return;
 
-  // Edit: preselect gudang
-  if(e.target.classList.contains('btnEdit')){
-    editingUserId = id;
-    const u = usersCache.find(x=>x.id===id);
-    userNameIn.value = u?.username||'(tanpa email)';
-    const allowed = rolesMap[id]||[];
-    Array.from(userRoles.options).forEach(opt => { opt.selected = allowed.includes(opt.value); });
-    return;
-  }
+        if(btn.classList.contains('btnEdit')){
+          editingUserId = id;
+          const u = usersCache.find(x=>x.id===id);
+          userNameIn.value = u?.username||'(tanpa email)';
+          const allowed = rolesMap[id]||[];
+          Array.from(userRoles.options).forEach(opt => { opt.selected = allowed.includes(opt.value); });
+          return;
+        }
 
-  // Kosongkan semua gudang user
-  if(e.target.classList.contains('btnClear')){
-    if(!confirm('Kosongkan semua akses gudang user ini?')) return;
-    supabase.from('roles_by_gudang').delete().eq('user_id', id).then(async ({error})=>{
-      if(error){ alert(error.message); return; }
-      await loadUsersAndRoles(); renderUserTable();
-      if(editingUserId===id){ Array.from(userRoles.options).forEach(o=>o.selected=false); }
-    });
-  }
-};
+        if(btn.classList.contains('btnClear')){
+          if(!confirm('Kosongkan semua akses gudang user ini?')) return;
+          const { error } = await supabase.from('roles_by_gudang').delete().eq('user_id', id);
+          if(error){ alert(error.message); return; }
+          await loadUsersAndRoles(); renderUserTable();
+          if(editingUserId===id){ Array.from(userRoles.options).forEach(o=>o.selected=false); }
+          return;
+        }
+      });
 
-saveUser.onclick = async ()=>{
-  if(!editingUserId) return alert('Klik tombol Edit pada salah satu user dulu.');
-  const selected = Array.from(userRoles.selectedOptions).map(o=>o.value);
-  try{
-    // hapus semua dulu → insert yang baru
-    const del = await supabase.from('roles_by_gudang').delete().eq('user_id', editingUserId);
-    if(del.error) throw del.error;
-    if(selected.length){
-      const ins = await supabase.from('roles_by_gudang').insert(selected.map(g=>({ user_id: editingUserId, gudang: g })));
-      if(ins.error) throw ins.error;
-    }
-    await loadUsersAndRoles(); renderUserTable();
-    alert('Akses gudang disimpan.');
-  }catch(e){ alert(e.message||'Gagal simpan'); }
-};
+      saveUser.onclick = async ()=>{
+        if(!editingUserId) return alert('Klik tombol Edit pada salah satu user dulu.');
+        const selected = Array.from(userRoles.selectedOptions).map(o=>o.value);
+        try{
+          const del = await supabase.from('roles_by_gudang').delete().eq('user_id', editingUserId);
+          if(del.error) throw del.error;
+          if(selected.length){
+            const ins = await supabase.from('roles_by_gudang').insert(selected.map(g=>({ user_id: editingUserId, gudang: g })));
+            if(ins.error) throw ins.error;
+          }
+          await loadUsersAndRoles(); renderUserTable();
+          alert('Akses gudang disimpan.');
+        }catch(e){ alert(e.message||'Gagal simpan'); }
+      };
 
-cancelUser.onclick = ()=>{
-  editingUserId = null;
-  userNameIn.value = '';
-  Array.from(userRoles.options).forEach(o=>o.selected=false);
-};
-
+      cancelUser.onclick = ()=>{
+        editingUserId = null;
+        userNameIn.value = '';
+        Array.from(userRoles.options).forEach(o=>o.selected=false);
+      };
     });
   </script>
 </body>
 </html>
-
