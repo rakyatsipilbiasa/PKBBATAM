@@ -19,8 +19,9 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; background: var(--gradient-bg); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
-    body.blurred > header, body.blurred > main { filter: blur(4px); header { position: sticky;  top: 0;  z-index: 1500; } .overlay, .login-overlay { z-index: 1000; } }
-    header { background: rgba(0,45,98,0.9); color: #fff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
+    /* Blur saat overlay login, tapi tetap bisa klik header (logout) */
+    body.blurred > header, body.blurred > main { filter: blur(4px); }
+    header { background: rgba(0,45,98,0.9); color: #fff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 1500; }
     .title-wrapper h1 { font-size: 1.6rem; font-weight: 600; }
     .title-wrapper h2 { font-size: .95rem; color: var(--accent-gold); margin-top: .25rem; font-weight: 500; }
     .header-buttons button { margin-left: .5rem; background: transparent; color: #fff; border: 2px solid #fff; padding: .5rem 1rem; border-radius: var(--radius); cursor: pointer; transition: background .2s; }
@@ -61,9 +62,9 @@
     </div>
     <div class="header-buttons">
       <button id="btnBrowseHeader">Browse</button>
-      <button id="btnSettingsHeader" style="display:none;">Settings</button>
-      <button id="btnAdminHeader" style="display:none;">Admin</button>
-      <button id="btnLogout" class="btn secondary">Logout</button>
+      <button id="btnSettingsHeader" style="display:none">Settings</button>
+      <button id="btnAdminHeader" style="display:none">Admin</button>
+      <button id="btnLogout" class="btn secondary" style="display:none">Logout</button>
     </div>
   </header>
 
@@ -145,14 +146,12 @@
       <label>Preview Pemeriksa Berikutnya</label>
       <select id="adminGudangPreview"><option value="">-- Pilih --</option></select>
       <p class="info">Selanjutnya: <strong><span id="adminNext">-</span></strong></p>
-
       <table id="adminTable" style="margin-top:1rem;">
         <thead>
           <tr><th>Nama</th><th>Gudang</th><th>Aksi</th></tr>
         </thead>
         <tbody id="adminBody"></tbody>
       </table>
-
       <h4 style="margin-top:1rem">Tambah Pemeriksa</h4>
       <input id="newNama" placeholder="Nama baru" />
       <select id="newGudang"><option value="">-- Pilih --</option></select>
@@ -174,10 +173,8 @@
       <span class="close-btn" id="settingsClose">&times;</span>
       <h3>Setting User (Admin)</h3>
       <p style="margin:.3rem 0 .8rem;color:#666">
-        Tambah/hapus user & ganti password tetap lewat <b>Supabase → Auth → Users</b> (aman).
-        Dari sini admin bisa atur <b>akses gudang</b> tiap user.
+        Tambah/hapus user & ganti password lewat <b>Supabase → Auth → Users</b>. Dari sini admin atur <b>akses gudang</b>.
       </p>
-
       <table id="userTable" style="width:100%;margin-bottom:1rem;">
         <thead><tr><th>Email</th><th>Role</th><th>Gudang</th><th>Aksi</th></tr></thead>
         <tbody></tbody>
@@ -185,7 +182,7 @@
 
       <h4>Ubah Akses Gudang</h4>
       <label>Email</label>
-      <input id="userName" placeholder="Pilih user lewat tombol Edit di tabel" disabled>
+      <input id="userName" placeholder="Pilih user via tombol Edit" disabled>
       <label>Allowed Gudang (Ctrl/⌘ + klik bisa multi)</label>
       <select id="userRoles" multiple size="6" style="width:100%;margin-top:.3rem;"></select>
 
@@ -199,53 +196,64 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // === KUNCI PROYEK KAMU ===
+    // === ISI DENGAN PUNYA KAMU (aman karena anon key) ===
     const SUPABASE_URL = 'https://dbgxlisqdtflxhqyrctz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZ3hsaXNxZHRmbHhocXlyY3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzU4MDEsImV4cCI6MjA3MDMxMTgwMX0.3k1i4UMtgaqvs6B6QwefOEonsroQXv9m933_Dj3rkBs';
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // === KONSTAN ===
-    const gudangList = [
-      'HBB','BTA','B99','SEWU','DOMSEK','SEKUTER','GC','MARINA','BIROTIKA','BTC','POS','FEDEX','GLB','APLOG','DBM','IBL','AEI','RORO','PUNGGUR','KABIL','BANDARA','WH','NONGSA','BLP'
-    ];
+    const gudangList = ['HBB','BTA','B99','SEWU','DOMSEK','SEKUTER','GC','MARINA','BIROTIKA','BTC','POS','FEDEX','GLB','APLOG','DBM','IBL','AEI','RORO','PUNGGUR','KABIL','BANDARA','WH','NONGSA','BLP'];
 
-    // === ELEMEN ===
+    // === DOM HELPERS ===
     const el = (id)=>document.getElementById(id);
-    const tblBody = document.querySelector('#riwayat tbody');
+    const tbodyRiwayat = document.querySelector('#riwayat tbody');
 
-    // === AUTH ===
-    async function signIn(email, password){
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error; return data.user;
-    }
-    async function signOut(){ await supabase.auth.signOut(); }
-    async function me(){ const { data } = await supabase.auth.getUser(); return data.user; }
+    // === AUTH HELPERS ===
+    const signIn  = (email, password)=> supabase.auth.signInWithPassword({ email, password });
+    const signOut = ()=> supabase.auth.signOut();
+    const getUser = async()=> (await supabase.auth.getUser()).data.user;
+    const getSession = async()=> (await supabase.auth.getSession()).data.session;
 
+    // === ACCESS ===
     async function getAccess(){
-      const user = await me(); if(!user) return { admin:false, allowed:[] };
-      const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-      const admin = prof?.role === 'admin';
-      if (admin) return { admin:true, allowed: null };
-      const { data: rows } = await supabase.from('roles_by_gudang').select('gudang').eq('user_id', user.id);
-      return { admin:false, allowed: rows?.map(r=>r.gudang)||[] };
+      const user = await getUser(); if(!user) return { admin:false, allowed:[] };
+      // role diri sendiri (aman, RLS profiles_select = id=auth.uid())
+      const { data: prof, error: e1 } = await supabase.from('profiles').select('role, username').eq('id', user.id).single();
+      if (e1) throw e1;
+      const isAdmin = prof?.role === 'admin';
+      if (isAdmin) return { admin:true, username: prof?.username, allowed: null };
+      // gudang yg diizinkan
+      const { data: rows, error: e2 } = await supabase.from('roles_by_gudang').select('gudang').eq('user_id', user.id);
+      if (e2) throw e2;
+      return { admin:false, username: prof?.username, allowed: rows?.map(r=>r.gudang)||[] };
     }
 
-    // === DATA HELPERS ===
-    async function listHistory({ nomor }={}){
-      const user = await me(); if(!user) return [];
-      let q = supabase.from('penunjukan_history').select('*').order('id', { ascending:false });
-      if (nomor) q = q.eq('nomor', nomor);
-      const { data, error } = await q; if (error) throw error; return data || [];
-    }
-
+    // === DATA ===
     async function pickNama(gudang){
       const { data, error } = await supabase.rpc('pick_pemeriksa', { gudang_in: gudang });
       if (error) throw error; return data;
     }
     async function addHistory({ nomor, jenis, gudang, pemeriksa }){
+      // created_by diisi otomatis oleh default auth.uid() via RLS
       const { error } = await supabase.from('penunjukan_history').insert({ nomor, jenis, gudang, pemeriksa });
       if (error) throw error;
+    }
+
+    // List riwayat + nama petugas via RPC (admin lihat semua; user lihat miliknya)
+    async function listHistoryWithUser(nomor){
+      try {
+        const { data, error } = await supabase.rpc('list_history_with_user', { nomor_in: nomor || null });
+        if (error) throw error;
+        return data || [];
+      } catch (e) {
+        // fallback: tanpa join username (kalau RPC belum dibuat)
+        let q = supabase.from('penunjukan_history').select('*').order('id', { ascending:false });
+        if (nomor) q = q.eq('nomor', nomor);
+        const { data } = await q;
+        // petugas fallback = potong UUID
+        return (data||[]).map(r => ({ ...r, creator_username: (r.created_by||'').toString().slice(0,8) }));
+      }
     }
 
     async function listPemeriksa(g){
@@ -253,22 +261,11 @@
       if (g) q = q.eq('gudang', g);
       const { data, error } = await q; if (error) throw error; return data || [];
     }
-    async function addPemeriksa(nama, gudang){
-      const { error } = await supabase.from('pemeriksa').insert({ nama, gudang });
-      if (error) throw error;
-    }
-    async function updPemeriksa(id, gudang){
-      const { error } = await supabase.from('pemeriksa').update({ gudang }).eq('id', id);
-      if (error) throw error;
-    }
-    async function delPemeriksa(id){
-      const { error } = await supabase.from('pemeriksa').delete().eq('id', id);
-      if (error) throw error;
-    }
-    async function setPreview(gudang, nama){
-      const { error } = await supabase.from('preview_pick').upsert({ gudang, nama });
-      if (error) throw error;
-    }
+    const addPemeriksa = (nama, gudang)=> supabase.from('pemeriksa').insert({ nama, gudang });
+    const updPemeriksa = (id, gudang)=> supabase.from('pemeriksa').update({ gudang }).eq('id', id);
+    const delPemeriksa = (id)=> supabase.from('pemeriksa').delete().eq('id', id);
+    const setPreview   = (gudang, nama)=> supabase.from('preview_pick').upsert({ gudang, nama });
+
     async function getPoolRemainingCount(g){
       const { data: pool } = await supabase.from('pools').select('remaining').eq('gudang', g).single();
       if (pool && Array.isArray(pool.remaining) && pool.remaining.length) return pool.remaining.length;
@@ -278,21 +275,25 @@
     // === UI LOGIC ===
     async function applyRoleAndGudang(){
       const acc = await getAccess();
+      // Tampilkan/ sembunyikan menu admin
+      el('btnAdminHeader').style.display    = acc.admin ? '' : 'none';
+      el('btnSettingsHeader').style.display = acc.admin ? '' : 'none';
+
+      // Isi gudang sesuai akses
       const sel = el('gudang');
       const list = acc.admin ? gudangList : gudangList.filter(g => acc.allowed.includes(g));
       sel.innerHTML = '<option value="">-- Pilih --</option>' + list.map(g=>`<option>${g}</option>`).join('');
       if(!acc.admin && list.length===1){ sel.value = list[0]; sel.disabled = true; await updateTotal(); }
-      // tampilkan tombol sesuai role
-      el('btnAdminHeader').style.display    = acc.admin ? '' : 'none';
-      el('btnSettingsHeader').style.display = acc.admin ? '' : 'none';
-      // dropdown yang lain
+      else { sel.disabled = false; }
+
+      // Admin modal dropdowns
       el('newGudang').innerHTML = '<option value="">-- Pilih --</option>' + gudangList.map(g=>`<option>${g}</option>`).join('');
       el('adminGudangPreview').innerHTML = '<option value="">-- Pilih --</option>' + gudangList.map(g=>`<option>${g}</option>`).join('');
     }
 
-    async function renderRiwayat(){
-      const rows = await listHistory();
-      tblBody.innerHTML = rows.length ? rows.map((r,i)=>`
+    async function renderRiwayat(nomor){
+      const rows = await listHistoryWithUser(nomor);
+      tbodyRiwayat.innerHTML = rows.length ? rows.map((r,i)=>`
         <tr>
           <td>${i+1}</td>
           <td>${r.nomor}</td>
@@ -300,7 +301,7 @@
           <td>${r.gudang}</td>
           <td>${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
           <td>${r.pemeriksa}</td>
-          <td>${(r.created_by||'').toString().slice(0,8)}</td>
+          <td>${r.creator_username || ''}</td>
         </tr>`).join('') : '<tr><td colspan="7">Belum ada penunjukan</td></tr>';
     }
 
@@ -309,52 +310,55 @@
       const n = await getPoolRemainingCount(g); el('totalTersisa').innerText = n;
     }
 
-    // === BIND EVENTS ===
-    document.addEventListener('DOMContentLoaded', async () => {
-      document.body.classList.add('blurred');
-      el('loginOverlay').classList.add('show');
+    // === LOGIN OVERLAY & LIFECYCLE ===
+    const showLogin = ()=>{ document.body.classList.add('blurred'); el('loginOverlay').classList.add('show'); };
+    const hideLogin = ()=>{ el('loginOverlay').classList.remove('show'); document.body.classList.remove('blurred'); };
+    const toggleLogout = (session)=>{ el('btnLogout').style.display = session?.user ? '' : 'none'; };
 
-      supabase.auth.onAuthStateChange(async (_evt, session) => {
-        if (!session?.user){
-          document.body.classList.add('blurred'); el('loginOverlay').classList.add('show'); return;
-        }
-        el('loginOverlay').classList.remove('show'); document.body.classList.remove('blurred');
-        await applyRoleAndGudang();
-        await renderRiwayat();
-        await updateTotal();
+    async function onLoggedIn(){
+      hideLogin();
+      toggleLogout({ user:true });
+      await applyRoleAndGudang();
+      await renderRiwayat();
+    }
+    function onLoggedOut(){
+      toggleLogout(null);
+      showLogin();
+    }
+
+    // ====== ENTRY POINT ======
+    document.addEventListener('DOMContentLoaded', async () => {
+      showLogin(); // tampilkan overlay dulu
+
+      // (1) cek session awal biar refresh mulus
+      const session = await getSession();
+      if (session?.user) await onLoggedIn(); else onLoggedOut();
+
+      // (2) dengarkan perubahan auth
+      supabase.auth.onAuthStateChange(async (_evt, sess) => {
+        if (sess?.user) await onLoggedIn(); else onLoggedOut();
       });
 
-      // LOGIN
+      // (3) login / logout
       el('loginBtn').onclick = async () => {
-        try {
-          let loginId = el('loginUser').value.trim();
-          // opsional: dukung username tanpa '@'
-          // if (!loginId.includes('@')) loginId = `${loginId}@pkbbatam.local`;
-          await signIn(loginId, el('loginPass').value);
-        } catch(e){
-          alert('Login gagal: ' + (e?.message||e)); console.error(e);
-        }
+        try { await signIn(el('loginUser').value.trim(), el('loginPass').value); }
+        catch(e){ alert('Login gagal: ' + (e?.message||e)); console.error(e); }
       };
       el('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') el('loginBtn').click(); });
-      el('loginClose').onclick = ()=>{}; // jangan ditutup
+      el('btnLogout').onclick = async ()=>{ await signOut(); };
 
-      // LOGOUT
-      el('btnLogout').onclick = async () => { await signOut(); };
-
-      // INPUT
+      // Input change
       el('gudang').addEventListener('change', updateTotal);
 
-      // TUNJUK
-      el('btnTunjuk').onclick = async () => {
+      // Tunjuk
+      el('btnTunjuk').onclick = async ()=>{
         const nom = el('nomor').value.trim();
         const jen = el('jenis').value; const gud = el('gudang').value;
         if(!/^\d+$/.test(nom)) return alert('Nomor hanya boleh angka');
         if(!jen || !gud) return alert('Lengkapi form');
         try {
-          const { data: exist, error: e1 } = await supabase.from('penunjukan_history').select('id').eq('nomor', nom).eq('jenis', jen).limit(1);
-          if (e1) throw e1;
+          const { data: exist } = await supabase.from('penunjukan_history').select('id').eq('nomor', nom).eq('jenis', jen).limit(1);
           if (exist && exist.length) return alert('Penunjukan untuk nomor & jenis ini sudah ada');
-
           const nama = await pickNama(gud);
           await addHistory({ nomor: nom, jenis: jen, gudang: gud, pemeriksa: nama });
           alert(`Berhasil menugaskan: ${nama}`);
@@ -363,46 +367,46 @@
         } catch(e){ alert('Gagal menugaskan: ' + (e?.message||e)); console.error(e); }
       };
 
-      // BROWSE
+      // Browse
       const browseOv = el('browseOverlay');
       el('btnBrowseHeader').onclick = ()=> browseOv.classList.add('show');
       el('browseClose').onclick = ()=> browseOv.classList.remove('show');
       browseOv.onclick = (e)=>{ if(e.target===browseOv) browseOv.classList.remove('show'); };
       el('btnBrowseModal').onclick = async ()=>{
         const nom = el('browseNomor').value.trim();
-        const rows = await listHistory({ nomor: nom || undefined });
+        const rows = await listHistoryWithUser(nom || undefined);
         const body = document.querySelector('#browseResults tbody');
         body.innerHTML = rows.length ? rows.map((r,i)=>`
           <tr>
             <td>${i+1}</td><td>${r.nomor}</td><td>${r.jenis}</td>
             <td>${r.gudang}</td><td>${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
-            <td>${r.pemeriksa}</td><td>${(r.created_by||'').toString().slice(0,8)}</td>
+            <td>${r.pemeriksa}</td><td>${r.creator_username||''}</td>
           </tr>`).join('') : '<tr><td colspan="7">Tidak ada data</td></tr>';
       };
 
-      // ADMIN
+      // Admin
       const adminOv = el('adminOverlay');
       el('btnAdminHeader').onclick = async ()=>{
-        const user = await me(); if(!user) return alert('Silakan login');
+        const user = await getUser(); if(!user) return alert('Silakan login');
         const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
         if (prof?.role !== 'admin') return alert('Hanya admin');
-        await renderAdmin(); adminOv.classList.add('show');
+        await renderAdmin();
+        adminOv.classList.add('show');
       };
       el('btnCloseAdmin').onclick = ()=> adminOv.classList.remove('show');
       adminOv.onclick = (e)=>{ if(e.target===adminOv) adminOv.classList.remove('show'); };
 
       async function renderAdmin(){
-        const list = await supabase.from('pemeriksa').select('*').order('nama');
-        const rows = list.data||[];
+        const { data: list, error } = await supabase.from('pemeriksa').select('*').order('nama');
+        if (error) { alert(error.message); return; }
+        const rows = list||[];
         el('adminBody').innerHTML = rows.map(p=>`
           <tr data-id="${p.id}">
             <td>${p.nama}</td>
             <td>
               <select class="selGudang">${['',...gudangList].map(g=>`<option ${g===p.gudang?'selected':''}>${g||'-- Pilih --'}</option>`).join('')}</select>
             </td>
-            <td>
-              <input type="checkbox" class="chkDel" /> Hapus
-            </td>
+            <td><input type="checkbox" class="chkDel" /> Hapus</td>
           </tr>`).join('');
         el('adminTotal').innerText = rows.length;
         el('newGudang').innerHTML = '<option value="">-- Pilih --</option>' + gudangList.map(g=>`<option>${g}</option>`).join('');
@@ -422,8 +426,8 @@
       el('btnAdd').onclick = async ()=>{
         const nm = el('newNama').value.trim(); const gd = el('newGudang').value;
         if(!nm || !gd) return alert('Isi nama & gudang');
-        try { await addPemeriksa(nm, gd); await renderAdmin(); alert('Ditambahkan'); }
-        catch(e){ alert(e.message||'Gagal tambah'); }
+        const { error } = await addPemeriksa(nm, gd);
+        if (error) alert(error.message); else { await renderAdmin(); alert('Ditambahkan'); }
       };
       el('btnUpd').onclick = async ()=>{
         const rows = [...document.querySelectorAll('#adminBody tr')];
@@ -461,42 +465,22 @@
         } catch(e){ alert(e.message||'Gagal reset'); }
       };
 
-      // SETTINGS (User & Roles)
-      const setOv = el('settingsOverlay');
-      const setBtn = el('btnSettingsHeader');
-      const setClose = el('settingsClose');
-      const userTableEl = document.getElementById('userTable');
-      const userTableBody = userTableEl.querySelector('tbody');
-      const userRoles = document.getElementById('userRoles');
-      const userNameIn = document.getElementById('userName');
-      const saveUser = document.getElementById('btnSaveUser');
-      const cancelUser = document.getElementById('btnCancelUser');
-
+      // Settings (Admin)
+      const setOv      = el('settingsOverlay');
+      const setBtn     = el('btnSettingsHeader');
+      const setClose   = el('settingsClose');
+      const userTable  = document.querySelector('#userTable tbody');
+      const userRoles  = el('userRoles');
+      const userNameIn = el('userName');
+      const btnSaveUser= el('btnSaveUser');
+      const btnCancel  = el('btnCancelUser');
       let usersCache = [];
-      let rolesMap = {};   // user_id -> [gudang]
+      let rolesMap   = {}; // user_id -> [gudang]
       let editingUserId = null;
 
-      function fillGudangOptions(){
-        userRoles.innerHTML = gudangList.map(g=>`<option value="${g}">${g}</option>`).join('');
-      }
-
-      async function loadUsersAndRoles(){
-        const { data: users, error: e1 } = await supabase.from('profiles').select('id, username, role').order('username');
-        if(e1) throw e1;
-        usersCache = users || [];
-
-        const { data: rbg, error: e2 } = await supabase.from('roles_by_gudang').select('user_id, gudang');
-        if(e2) throw e2;
-
-        rolesMap = {};
-        (rbg||[]).forEach(r => {
-          if(!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
-          rolesMap[r.user_id].push(r.gudang);
-        });
-      }
-
+      function fillGudangOptions(){ userRoles.innerHTML = gudangList.map(g=>`<option value="${g}">${g}</option>`).join(''); }
       function renderUserTable(){
-        userTableBody.innerHTML = (usersCache||[]).map(u => `
+        userTable.innerHTML = (usersCache||[]).map(u => `
           <tr data-id="${u.id}">
             <td>${u.username||'(tanpa email)'}</td>
             <td>${u.role}</td>
@@ -505,32 +489,45 @@
               <button class="btn secondary btnEdit" data-id="${u.id}">Edit</button>
               <button class="btn danger btnClear" data-id="${u.id}">Kosongkan Gudang</button>
             </td>
-          </tr>
-        `).join('');
+          </tr>`).join('');
+      }
+
+      async function loadUsersAndRoles(){
+        // users via RPC agar admin bisa lihat semua meski RLS profiles ketat
+        try {
+          const { data: users, error: e1 } = await supabase.rpc('admin_list_users');
+          if (e1) throw e1;
+          usersCache = users || [];
+        } catch (e) {
+          alert('Fungsi admin_list_users belum dibuat. Lihat instruksi SQL di bawah file.');
+          usersCache = [];
+        }
+        // roles_by_gudang bisa dibaca admin (policy sudah ada)
+        const { data: rbg } = await supabase.from('roles_by_gudang').select('user_id, gudang');
+        rolesMap = {};
+        (rbg||[]).forEach(r => {
+          if(!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
+          rolesMap[r.user_id].push(r.gudang);
+        });
       }
 
       setBtn.onclick = async ()=>{
-        const user = await me(); if(!user) return alert('Silakan login');
+        const user = await getUser(); if(!user) return alert('Silakan login');
         const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
         if (prof?.role !== 'admin') return alert('Hanya admin');
 
         setOv.classList.add('show');
         fillGudangOptions();
-        try {
-          await loadUsersAndRoles();
-          renderUserTable();
-        } catch(e){ alert(e.message||'Gagal load users'); }
+        await loadUsersAndRoles();
+        renderUserTable();
       };
-
       setClose.onclick = ()=> setOv.classList.remove('show');
       setOv.onclick    = e=>{ if(e.target===setOv) setOv.classList.remove('show'); };
 
-      // Delegasi klik pada tabel (Edit / Kosongkan)
-      userTableEl.addEventListener('click', async (e)=>{
-        const btn = e.target.closest('button'); if(!btn) return;
-        const id = btn.dataset.id; if(!id) return;
-
-        if(btn.classList.contains('btnEdit')){
+      document.querySelector('#userTable').onclick = (e)=>{
+        const id = e.target.dataset.id;
+        if(!id) return;
+        if(e.target.classList.contains('btnEdit')){
           editingUserId = id;
           const u = usersCache.find(x=>x.id===id);
           userNameIn.value = u?.username||'(tanpa email)';
@@ -538,18 +535,17 @@
           Array.from(userRoles.options).forEach(opt => { opt.selected = allowed.includes(opt.value); });
           return;
         }
-
-        if(btn.classList.contains('btnClear')){
+        if(e.target.classList.contains('btnClear')){
           if(!confirm('Kosongkan semua akses gudang user ini?')) return;
-          const { error } = await supabase.from('roles_by_gudang').delete().eq('user_id', id);
-          if(error){ alert(error.message); return; }
-          await loadUsersAndRoles(); renderUserTable();
-          if(editingUserId===id){ Array.from(userRoles.options).forEach(o=>o.selected=false); }
-          return;
+          supabase.from('roles_by_gudang').delete().eq('user_id', id).then(async ({error})=>{
+            if(error){ alert(error.message); return; }
+            await loadUsersAndRoles(); renderUserTable();
+            if(editingUserId===id){ Array.from(userRoles.options).forEach(o=>o.selected=false); }
+          });
         }
-      });
+      };
 
-      saveUser.onclick = async ()=>{
+      btnSaveUser.onclick = async ()=>{
         if(!editingUserId) return alert('Klik tombol Edit pada salah satu user dulu.');
         const selected = Array.from(userRoles.selectedOptions).map(o=>o.value);
         try{
@@ -563,14 +559,48 @@
           alert('Akses gudang disimpan.');
         }catch(e){ alert(e.message||'Gagal simpan'); }
       };
-
-      cancelUser.onclick = ()=>{
-        editingUserId = null;
-        userNameIn.value = '';
-        Array.from(userRoles.options).forEach(o=>o.selected=false);
+      btnCancel.onclick = ()=>{
+        editingUserId = null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false);
       };
     });
   </script>
+
+  <!--
+  ============================
+  JALANKAN SEKALI DI SQL EDITOR:
+  (untuk kolom "Petugas" & halaman Settings)
+  ============================
+  CREATE OR REPLACE FUNCTION public.list_history_with_user(nomor_in text default null)
+  RETURNS TABLE (
+    id bigint, nomor text, jenis text, gudang text, tanggal timestamptz,
+    pemeriksa text, created_by uuid, creator_username text
+  )
+  LANGUAGE sql
+  SECURITY DEFINER
+  SET search_path = public
+  AS $$
+    select h.id, h.nomor, h.jenis, h.gudang, h.tanggal, h.pemeriksa, h.created_by, p.username as creator_username
+    from public.penunjukan_history h
+    join public.profiles p on p.id = h.created_by
+    where (nomor_in is null or h.nomor = nomor_in)
+      and (public.is_admin() or h.created_by = auth.uid())
+    order by h.id desc
+  $$;
+
+  GRANT EXECUTE ON FUNCTION public.list_history_with_user(text) TO authenticated;
+
+  CREATE OR REPLACE FUNCTION public.admin_list_users()
+  RETURNS TABLE (id uuid, username text, role text)
+  LANGUAGE sql
+  SECURITY DEFINER
+  SET search_path = public
+  AS $$
+    select id, username, role from public.profiles
+    where public.is_admin()
+    order by username nulls last
+  $$;
+
+  GRANT EXECUTE ON FUNCTION public.admin_list_users() TO authenticated;
+  -->
 </body>
 </html>
-
