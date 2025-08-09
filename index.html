@@ -168,20 +168,33 @@
     </div>
   </div>
 
-  <!-- Settings Modal (info) -->
-  <div class="overlay" id="settingsOverlay">
-    <div class="modal">
-      <span class="close-btn" id="settingsClose">&times;</span>
-      <h3>Settings User</h3>
-      <p>Pengelolaan akun dilakukan lewat <strong>Supabase Dashboard → Auth → Users</strong>.</p>
-      <ol style="margin-left:1rem;">
-        <li>Tambah user (email & password).</li>
-        <li>Pastikan <code>profiles</code> otomatis terbuat via trigger, atau isi manual.</li>
-        <li>Atur akses gudang di tabel <code>roles_by_gudang</code> (via SQL/Spreadsheet Editor).</li>
-      </ol>
-      <small class="hint">Halaman ini bersifat informasi agar aplikasi tetap 100% client-side.</small>
+<!-- Settings Modal -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <span class="close-btn" id="settingsClose">&times;</span>
+    <h3>Setting User (Admin)</h3>
+    <p style="margin:.3rem 0 .8rem;color:#666">
+      Tambah/hapus user & ganti password tetap lewat <b>Supabase → Auth → Users</b> (aman). 
+      Dari sini admin bisa atur <b>akses gudang</b> tiap user.
+    </p>
+
+    <table id="userTable" style="width:100%;margin-bottom:1rem;">
+      <thead><tr><th>Email</th><th>Role</th><th>Gudang</th><th>Aksi</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <h4>Ubah Akses Gudang</h4>
+    <label>Email</label>
+    <input id="userName" placeholder="Pilih user lewat tombol Edit di tabel" disabled>
+    <label>Allowed Gudang (Ctrl/⌘ + klik bisa multi)</label>
+    <select id="userRoles" multiple size="6" style="width:100%;margin-top:.3rem;"></select>
+
+    <div style="margin-top:.6rem;">
+      <button id="btnSaveUser" class="btn primary">Simpan</button>
+      <button id="btnCancelUser" class="btn secondary">Batal</button>
     </div>
   </div>
+</div>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -434,11 +447,119 @@
         } catch(e){ alert(e.message||'Gagal reset'); }
       };
 
-      const setOv = el('settingsOverlay');
-      el('btnSettingsHeader').onclick = ()=> setOv.classList.add('show');
-      el('settingsClose').onclick = ()=> setOv.classList.remove('show');
-      setOv.onclick = (e)=>{ if(e.target===setOv) setOv.classList.remove('show'); };
+      // SETTINGS (User & Roles) — versi Supabase
+const setOv      = el('settingsOverlay');
+const setBtn     = el('btnSettingsHeader');
+const setClose   = el('settingsClose');
+const userTable  = document.querySelector('#userTable tbody');
+const userRoles  = document.getElementById('userRoles');
+const userNameIn = document.getElementById('userName');
+const saveUser   = document.getElementById('btnSaveUser');
+const cancelUser = document.getElementById('btnCancelUser');
+
+let usersCache = [];
+let rolesMap   = {};  // user_id -> [gudang]
+let editingUserId = null;
+
+function fillGudangOptions(){
+  userRoles.innerHTML = gudangList.map(g=>`<option value="${g}">${g}</option>`).join('');
+}
+
+async function loadUsersAndRoles(){
+  const { data: users, error: e1 } = await supabase.from('profiles').select('id, username, role').order('username');
+  if(e1) throw e1;
+  usersCache = users || [];
+
+  const { data: rbg, error: e2 } = await supabase.from('roles_by_gudang').select('user_id, gudang');
+  if(e2) throw e2;
+
+  rolesMap = {};
+  (rbg||[]).forEach(r => {
+    if(!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
+    rolesMap[r.user_id].push(r.gudang);
+  });
+}
+
+function renderUserTable(){
+  userTable.innerHTML = (usersCache||[]).map(u => `
+    <tr data-id="${u.id}">
+      <td>${u.username||'(tanpa email)'}</td>
+      <td>${u.role}</td>
+      <td>${(rolesMap[u.id]||[]).join(', ')}</td>
+      <td>
+        <button class="btn secondary btnEdit" data-id="${u.id}">Edit</button>
+        <button class="btn danger btnClear" data-id="${u.id}">Kosongkan Gudang</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+setBtn.onclick = async ()=>{
+  // hanya admin
+  const user = await me(); if(!user) return alert('Silakan login');
+  const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+  if (prof?.role !== 'admin') return alert('Hanya admin');
+
+  setOv.classList.add('show');
+  fillGudangOptions();
+  try {
+    await loadUsersAndRoles();
+    renderUserTable();
+  } catch(e){ alert(e.message||'Gagal load users'); }
+};
+
+setClose.onclick = ()=> setOv.classList.remove('show');
+setOv.onclick    = e=>{ if(e.target===setOv) setOv.classList.remove('show'); };
+
+document.querySelector('#userTable').onclick = (e)=>{
+  const id = e.target.dataset.id;
+  if(!id) return;
+
+  // Edit: preselect gudang
+  if(e.target.classList.contains('btnEdit')){
+    editingUserId = id;
+    const u = usersCache.find(x=>x.id===id);
+    userNameIn.value = u?.username||'(tanpa email)';
+    const allowed = rolesMap[id]||[];
+    Array.from(userRoles.options).forEach(opt => { opt.selected = allowed.includes(opt.value); });
+    return;
+  }
+
+  // Kosongkan semua gudang user
+  if(e.target.classList.contains('btnClear')){
+    if(!confirm('Kosongkan semua akses gudang user ini?')) return;
+    supabase.from('roles_by_gudang').delete().eq('user_id', id).then(async ({error})=>{
+      if(error){ alert(error.message); return; }
+      await loadUsersAndRoles(); renderUserTable();
+      if(editingUserId===id){ Array.from(userRoles.options).forEach(o=>o.selected=false); }
+    });
+  }
+};
+
+saveUser.onclick = async ()=>{
+  if(!editingUserId) return alert('Klik tombol Edit pada salah satu user dulu.');
+  const selected = Array.from(userRoles.selectedOptions).map(o=>o.value);
+  try{
+    // hapus semua dulu → insert yang baru
+    const del = await supabase.from('roles_by_gudang').delete().eq('user_id', editingUserId);
+    if(del.error) throw del.error;
+    if(selected.length){
+      const ins = await supabase.from('roles_by_gudang').insert(selected.map(g=>({ user_id: editingUserId, gudang: g })));
+      if(ins.error) throw ins.error;
+    }
+    await loadUsersAndRoles(); renderUserTable();
+    alert('Akses gudang disimpan.');
+  }catch(e){ alert(e.message||'Gagal simpan'); }
+};
+
+cancelUser.onclick = ()=>{
+  editingUserId = null;
+  userNameIn.value = '';
+  Array.from(userRoles.options).forEach(o=>o.selected=false);
+};
+
     });
   </script>
 </body>
 </html>
+
