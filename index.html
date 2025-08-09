@@ -19,7 +19,7 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; background: var(--gradient-bg); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
-    body.blurred > header, body.blurred > main { filter: blur(4px); pointer-events: none; }
+    body.blurred > header, body.blurred > main { filter: blur(4px); header { position: sticky;  top: 0;  z-index: 1500; } .overlay, .login-overlay { z-index: 1000; } }
     header { background: rgba(0,45,98,0.9); color: #fff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
     .title-wrapper h1 { font-size: 1.6rem; font-weight: 600; }
     .title-wrapper h2 { font-size: .95rem; color: var(--accent-gold); margin-top: .25rem; font-weight: 500; }
@@ -573,3 +573,4 @@
   </script>
 </body>
 </html>
+
