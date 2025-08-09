@@ -322,20 +322,10 @@
     ];
 
     let userDefs = JSON.parse(localStorage.getItem('userDefs')) || {
-  admin:{ pwd:'rahasiaadmin', allowed:['*'] },
-  budi:{  pwd:'budipwd',     allowed:['B99'] },
-  sari:{  pwd:'saripwd',     allowed:['BTA','BTC'] }
-};
-
-(function normalizeUserDefs(){
-  const out = {};
-  Object.entries(userDefs).forEach(([k,v])=>{
-    out[normUser(k)] = { pwd: v.pwd, allowed: (v.allowed||[]).slice() };
-  });
-  userDefs = out;
-  localStorage.setItem('userDefs', JSON.stringify(userDefs));
-})();
-
+      admin: { pwd:'rahasiaadmin', allowed:['*'] },
+      budi:  { pwd:'budipwd',        allowed:['B99'] },
+      sari:  { pwd:'saripwd',        allowed:['BTA','BTC'] }
+    };
 
     let pemeriksaList     = JSON.parse(localStorage.getItem('pemeriksaList'))    || defaultList.slice();
     let penunjukanHistory = JSON.parse(localStorage.getItem('penunjukanHistory'))|| [];
@@ -346,9 +336,6 @@
     function savePools(){ localStorage.setItem('pools', JSON.stringify(pools)); }
     function savePreview(){ localStorage.setItem('previewPick', JSON.stringify(previewPick)); }
     
-    function normUser(u){ return (u||'').trim().toLowerCase(); }
-    function isAdminUser(){ return normUser(sessionStorage.currentUser) === 'admin'; }
-
     function initPools() {
       pools = {};
       gudangList.forEach(g => {
@@ -438,17 +425,25 @@
           </tr>`).join('');
     }
 
-    function applyRole(){
-  const allowed = JSON.parse(sessionStorage.allowed||'[]');
-  const isAdmin = isAdminUser();
-  const sel = document.getElementById('gudang');
-  const gudangs = isAdmin ? gudangList : gudangList.filter(g=>allowed.includes(g));
-  sel.innerHTML = '<option value="">-- Pilih --</option>' + gudangs.map(g=>`<option>${g}</option>`).join('');
-  if(!isAdmin && allowed.length===1){ sel.value = allowed[0]; sel.disabled = true; } else { sel.disabled = false; }
-  document.getElementById('btnAdminHeader').style.display    = isAdmin ? '' : 'none';
-  document.getElementById('btnSettingsHeader').style.display = isAdmin ? '' : 'none';
-}
-
+    function applyRole() {
+      const allowed = JSON.parse(sessionStorage.allowed||'[]');
+      const sel = document.getElementById('gudang');
+      const gudangs = sessionStorage.currentUser==='admin'
+        ? gudangList
+        : gudangList.filter(g=>allowed.includes(g));
+      sel.innerHTML = '<option value="">-- Pilih --</option>' + gudangs.map(g=>`<option>${g}</option>`).join('');
+      if(sessionStorage.currentUser!=='admin' && allowed.length===1){
+        sel.value = allowed[0];
+        sel.disabled = true;
+      } else {
+        sel.disabled = false;
+      }
+      updateTotal();
+      document.getElementById('btnAdminHeader').style.display =
+        sessionStorage.currentUser==='admin'?'':'none';
+      document.getElementById('btnSettingsHeader').style.display =
+        sessionStorage.currentUser==='admin'?'':'none';
+    }
 
     document.addEventListener('DOMContentLoaded',()=>{
       if (!Object.keys(pools).length) initPools();
