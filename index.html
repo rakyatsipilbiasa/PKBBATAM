@@ -6,85 +6,72 @@
   <title>Perekaman Kesiapan Barang — Supabase</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --gradient-bg: linear-gradient(135deg, #002244 0%, #003366 100%);
-      --panel-bg: #f7f8fa;
-      --text-dark: #333;
-      --text-muted: #666;
-      --accent-blue: #002d62;
-      --accent-gold: #d4af37;
-      --border: #dce0e6;
-      --radius: 10px;
-      --shadow: 0 4px 12px rgba(0,0,0,0.1);
+    :root{
+      --gradient-bg: linear-gradient(135deg,#002244 0%,#003366 100%);
+      --panel-bg:#f7f8fa; --text-dark:#333; --text-muted:#666;
+      --accent-blue:#002d62; --accent-gold:#d4af37; --border:#dce0e6;
+      --radius:10px; --shadow:0 4px 12px rgba(0,0,0,.1);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: var(--gradient-bg); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
-    /* Blur saat overlay login (header tetap visible) */
-    body.blurred > header, body.blurred > main { filter: blur(3px); }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--gradient-bg);color:var(--text-dark);min-height:100vh;display:flex;flex-direction:column}
+    body.blurred > header, body.blurred > main{filter:blur(3px)}
+    header{background:rgba(0,45,98,.95);color:#fff;padding:.7rem 1rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow);position:sticky;top:0;z-index:1500}
+    .title-wrapper h1{font-size:1.1rem;font-weight:600}
+    .title-wrapper h2{font-size:.78rem;color:var(--accent-gold);margin-top:.2rem;font-weight:500}
+    .header-buttons{display:flex;flex-wrap:wrap;gap:.4rem}
+    .header-buttons .chip{font-size:.8rem;color:#fff;opacity:.8}
+    .btn{border:none;border-radius:999px;padding:.5rem .9rem;font-weight:600;font-size:.9rem;cursor:pointer;transition:transform .12s,box-shadow .12s}
+    .btn.primary{background:var(--accent-gold);color:var(--accent-blue)}
+    .btn.secondary{background:transparent;color:#fff;border:1.5px solid #fff}
+    .btn.danger{background:#d9534f;color:#fff;border:1.5px solid #d9534f}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.small{padding:.42rem .75rem;font-size:.85rem}
+    .btn.icon{display:inline-flex;align-items:center;gap:.4rem}
 
-    header {
-      background: rgba(0,45,98,0.95); color: #fff; padding: .7rem 1rem;
-      display: flex; justify-content: space-between; align-items: center;
-      box-shadow: var(--shadow); position: sticky; top: 0; z-index: 1500;
-    }
-    .title-wrapper h1 { font-size: 1.25rem; font-weight: 600; }
-    .title-wrapper h2 { font-size: .8rem; color: var(--accent-gold); margin-top: .2rem; font-weight: 500; }
+    /* ===== Layout: riwayat lebih lebar ===== */
+    main{flex:1;max-width:1280px;margin:1rem auto;padding:0 .8rem;display:grid;grid-template-columns:minmax(300px,1fr) minmax(520px,2fr);gap:1rem}
+    @media (max-width: 960px){main{grid-template-columns:1fr}}
+    .panel{background:var(--panel-bg);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;box-shadow:var(--shadow)}
+    .panel h3{margin-bottom:.7rem;color:var(--accent-blue);font-size:1rem;font-weight:700;letter-spacing:.2px;text-transform:uppercase}
+    label{display:block;margin-top:.7rem;font-size:.88rem;color:var(--text-muted);font-weight:500}
+    input,select{width:100%;padding:.55rem .6rem;margin-top:.35rem;border:1px solid var(--border);border-radius:8px;font-size:.95rem;background:#fff;transition:border-color .15s,box-shadow .15s}
+    input:focus,select:focus{outline:none;border-color:var(--accent-blue);box-shadow:0 0 5px rgba(0,45,98,.25)}
+    p.info{margin-top:.6rem;font-size:.9rem;color:var(--accent-blue);font-weight:600}
 
-    .header-buttons button {
-      margin-left: .4rem; background: transparent; color: #fff;
-      border: 1.5px solid #fff; padding: .45rem .8rem; border-radius: 8px;
-      cursor: pointer; transition: background .15s, transform .05s; font-size: .9rem;
-    }
-    .header-buttons button:hover { background: rgba(255,255,255,0.18); }
-    .btn { border: none; border-radius: 999px; padding: .55rem 1rem; font-weight: 600; font-size: .92rem; cursor: pointer; transition: transform .12s, box-shadow .12s; }
-    .btn.primary { background: var(--accent-gold); color: var(--accent-blue); }
-    .btn.primary:hover { transform: translateY(-1px); }
-    .btn.secondary { background: transparent; color: var(--accent-blue); border: 1.5px solid var(--accent-blue); }
-    .btn.secondary:hover { background: var(--accent-blue); color: #fff; }
-    .btn.danger { background: #d9534f; color: #fff; border: 1.5px solid #d9534f; }
-    .btn.danger:hover { background: #c12e2a; border-color: #c12e2a; }
-    .btn.small { padding: .45rem .8rem; font-size: .88rem; }
+    /* Tabel riwayat: full height scroll vertikal, tidak horizontal */
+    .table-wrapper{height:60vh;overflow:auto;border:1px solid var(--border);border-radius:8px;margin-top:.6rem}
+    table{width:100%;border-collapse:collapse;font-size:.9rem;table-layout:fixed}
+    th,td{padding:.55rem .6rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    th{color:var(--accent-gold);position:sticky;top:0;background:var(--panel-bg);z-index:1;cursor:pointer}
+    tr:nth-child(even){background:rgba(0,45,98,.05)}
+    .th-sort::after{content:" ⇅";font-weight:400;color:#999}
+    .th-asc::after{content:" ↑";color:#777}
+    .th-desc::after{content:" ↓";color:#777}
 
-    main { flex: 1; max-width: 1100px; margin: 1.2rem auto; padding: 0 1rem; display: grid; grid-template-columns: repeat(auto-fit,minmax(340px,1fr)); gap: 1rem; }
-    .panel { background: var(--panel-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.2rem; box-shadow: var(--shadow); }
-    .panel h3 { margin-bottom: .8rem; color: var(--accent-blue); font-size: 1rem; font-weight: 700; letter-spacing: .2px; text-transform: uppercase; }
-    label { display: block; margin-top: .8rem; font-size: .88rem; color: var(--text-muted); font-weight: 500; }
-    input, select {
-      width: 100%; padding: .55rem .6rem; margin-top: .35rem; border: 1px solid var(--border);
-      border-radius: 8px; font-size: .95rem; background: #fff; transition: border-color .15s, box-shadow .15s;
-    }
-    input:focus, select:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 5px rgba(0,45,98,0.25); }
-    p.info { margin-top: .6rem; font-size: .92rem; color: var(--accent-blue); font-weight: 600; }
-
-    .table-wrapper { max-height: 60vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin-top: .6rem; }
-    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-    th, td { padding: .55rem .6rem; border-bottom: 1px solid var(--border); text-align: left; }
-    th { color: var(--accent-gold); position: sticky; top: 0; background: var(--panel-bg); z-index: 1; }
-    tr:nth-child(even) { background: rgba(0,45,98,0.05); }
+    /* Search & pagination bar */
+    .bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.4rem 0}
+    .bar .grow{flex:1}
+    .bar input[type="search"]{width:100%}
+    .pager{display:flex;gap:.4rem;align-items:center}
+    .pager .pageinfo{font-size:.85rem;color:#555;min-width:120px;text-align:center}
 
     /* Overlay / Modal */
-    .overlay, .login-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 1000; }
-    .overlay.show, .login-overlay.show { display: flex; }
-    .modal, .login-modal {
-      background: var(--panel-bg); border-radius: 10px; padding: 1rem 1.1rem; width: 100%; max-width: 760px;
-      box-shadow: var(--shadow); position: relative; max-height: 85vh; overflow-y: auto;
-      transform: translateY(-14px); opacity: 0; transition: transform .15s, opacity .15s;
-    }
-    .overlay.show .modal, .login-overlay.show .login-modal { transform: translateY(0); opacity: 1; }
-    .close-btn { position: absolute; top: .6rem; right: .6rem; width: 26px; height: 26px; background: var(--accent-gold); color: var(--accent-blue); border-radius: 50%; text-align: center; line-height: 26px; cursor: pointer; font-weight: 800; }
-    .close-btn:hover { background: var(--accent-blue); color: #fff; }
-    small.hint { color: var(--text-muted); display: inline-block; margin-top: .25rem; }
+    .overlay,.login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:1rem;z-index:1200}
+    .overlay.show,.login-overlay.show{display:flex}
+    .modal,.login-modal{background:var(--panel-bg);border-radius:10px;padding:1rem 1.1rem;width:100%;max-width:860px;box-shadow:var(--shadow);position:relative;max-height:85vh;overflow:auto;transform:translateY(-14px);opacity:0;transition:transform .15s,opacity .15s}
+    .overlay.show .modal,.login-overlay.show .login-modal{transform:translateY(0);opacity:1}
+    .close-btn{position:absolute;top:.6rem;right:.6rem;width:26px;height:26px;background:var(--accent-gold);color:var(--accent-blue);border-radius:50%;text-align:center;line-height:26px;cursor:pointer;font-weight:800}
 
     /* Toast */
-    #toast {
-      position: fixed; right: 16px; bottom: 16px; z-index: 2000; display: none;
-      background: #333; color: #fff; padding: .6rem .8rem; border-radius: 8px; max-width: 80vw; box-shadow: var(--shadow); font-size: .9rem;
-    }
-    #toast.show { display: block; animation: fadein .15s ease, fadeout .2s ease 3.2s forwards; }
-    #toast.success { background: #2e7d32; }
-    #toast.error { background: #c62828; }
-    @keyframes fadein { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
-    @keyframes fadeout { to { opacity: 0; transform: translateY(6px);} }
+    #toast{position:fixed;right:16px;bottom:16px;z-index:2000;display:none;background:#333;color:#fff;padding:.6rem .8rem;border-radius:8px;max-width:80vw;box-shadow:var(--shadow);font-size:.9rem}
+    #toast.show{display:block;animation:fadein .15s ease,fadeout .2s ease 3.2s forwards}
+    #toast.success{background:#2e7d32} #toast.error{background:#c62828}
+    @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}} @keyframes fadeout{to{opacity:0;transform:translateY(6px)}}
+
+    /* Spinner (loading indicator) */
+    #spinnerOverlay{position:fixed;inset:0;background:rgba(255,255,255,.6);z-index:1600;display:none;align-items:center;justify-content:center}
+    .spinner{width:42px;height:42px;border:4px solid #ccc;border-top-color:var(--accent-blue);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
@@ -94,6 +81,7 @@
       <h2>KPU BC TIPE B BATAM</h2>
     </div>
     <div class="header-buttons">
+      <span id="chipGudang" class="chip"></span>
       <button id="btnBrowseHeader" class="small">Browse</button>
       <button id="btnSettingsHeader" class="small" style="display:none">Settings</button>
       <button id="btnAdminHeader" class="small" style="display:none">Admin</button>
@@ -103,6 +91,7 @@
   </header>
 
   <main>
+    <!-- Panel kiri: Input -->
     <div class="panel">
       <h3>Input Penunjukan</h3>
       <label for="nomor">Nomor Pendaftaran</label>
@@ -115,18 +104,38 @@
       </select>
       <label for="gudang">Gudang</label>
       <select id="gudang"><option value="">-- Pilih --</option></select>
-      <button id="btnTunjuk" class="btn primary small">Tunjuk Pemeriksa</button>
+      <button id="btnTunjuk" class="btn primary small" style="margin-top:.6rem;">Tunjuk Pemeriksa</button>
       <p class="info">Total Tersisa: <span id="totalTersisa">0</span></p>
     </div>
 
+    <!-- Panel kanan: Riwayat (lebih lebar) -->
     <div class="panel">
       <h3>Riwayat Penunjukan</h3>
+
+      <div class="bar">
+        <input id="searchText" class="grow" type="search" placeholder="Cari cepat (nomor, jenis, gudang, pemeriksa, petugas)..." />
+        <label style="margin:0">Per halaman</label>
+        <select id="pageSize" style="width:80px">
+          <option>10</option><option selected>25</option><option>50</option><option>100</option>
+        </select>
+        <div class="pager">
+          <button id="prevPage" class="btn secondary small">Prev</button>
+          <span id="pageInfo" class="pageinfo">0/0</span>
+          <button id="nextPage" class="btn secondary small">Next</button>
+        </div>
+      </div>
+
       <div class="table-wrapper">
         <table id="riwayat">
           <thead>
             <tr>
-              <th>No</th><th>Nomor</th><th>Jenis</th><th>Gudang</th>
-              <th>Tanggal</th><th>Pemeriksa</th><th>Petugas</th>
+              <th data-key="rownum">No</th>
+              <th data-key="nomor" class="th-sort">Nomor</th>
+              <th data-key="jenis" class="th-sort">Jenis</th>
+              <th data-key="gudang" class="th-sort">Gudang</th>
+              <th data-key="tanggal" class="th-sort">Tanggal</th>
+              <th data-key="pemeriksa" class="th-sort">Pemeriksa</th>
+              <th data-key="creator_username" class="th-sort">Petugas</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -135,18 +144,22 @@
     </div>
   </main>
 
-  <!-- Browse Modal -->
+  <!-- Browse Modal (dengan hapus terpilih untuk admin) -->
   <div class="overlay" id="browseOverlay">
     <div class="modal">
       <span class="close-btn" data-close="browseOverlay">&times;</span>
       <h3>Browse Penunjukan</h3>
-      <label>Nomor Pendaftaran</label>
-      <input id="browseNomor" placeholder="(kosong = semua)" />
-      <button id="btnBrowseModal" class="btn primary small">Tampilkan</button>
-      <div class="table-wrapper" style="margin-top:.6rem;">
+      <div class="bar">
+        <input id="browseNomor" type="search" class="grow" placeholder="Filter Nomor (kosong = semua)" />
+        <button id="btnBrowseModal" class="btn primary small">Tampilkan</button>
+        <button id="btnDeleteSelected" class="btn danger small" style="display:none">Hapus Terpilih</button>
+        <label style="margin-left:auto;margin-bottom:0"><input type="checkbox" id="chkSelectAll"/> Pilih semua</label>
+      </div>
+      <div class="table-wrapper" style="height:55vh">
         <table id="browseResults">
           <thead>
             <tr>
+              <th style="width:42px">✔</th>
               <th>No</th><th>Nomor</th><th>Jenis</th><th>Gudang</th>
               <th>Tanggal</th><th>Pemeriksa</th><th>Petugas</th>
             </tr>
@@ -171,7 +184,7 @@
     </div>
   </div>
 
-  <!-- Akun (Ubah Password Sendiri) -->
+  <!-- Akun (ubah password sendiri) -->
   <div class="overlay" id="accountOverlay">
     <div class="modal">
       <span class="close-btn" data-close="accountOverlay">&times;</span>
@@ -248,26 +261,29 @@
     </div>
   </div>
 
+  <!-- Toast & Spinner -->
   <div id="toast"></div>
+  <div id="spinnerOverlay"><div class="spinner"></div></div>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // === GANTI DENGAN PUNYAMU ===
+    // ====== KONFIG SUPABASE (punyamu) ======
     const SUPABASE_URL = 'https://dbgxlisqdtflxhqyrctz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZ3hsaXNxZHRmbHhocXlyY3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzU4MDEsImV4cCI6MjA3MDMxMTgwMX0.3k1i4UMtgaqvs6B6QwefOEonsroQXv9m933_Dj3rkBs';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // ====== Konstanta & DOM refs ======
     const gudangList = ['HBB','BTA','B99','SEWU','DOMSEK','SEKUTER','GC','MARINA','BIROTIKA','BTC','POS','FEDEX','GLB','APLOG','DBM','IBL','AEI','RORO','PUNGGUR','KABIL','BANDARA','WH','NONGSA','BLP'];
-
-    // Helpers DOM
-    const el = (id)=>document.getElementById(id);
+    const el = id => document.getElementById(id);
     const tbodyRiwayat = document.querySelector('#riwayat tbody');
+    const chipGudang = el('chipGudang');
 
-    // Toast
-    function showToast(msg, type=''){ const t=el('toast'); t.className=''; t.textContent=msg; if(type) t.classList.add(type); t.classList.add('show'); setTimeout(()=>{ t.className=''; t.textContent=''; }, 3500); }
+    // ====== UI helpers ======
+    function showToast(msg,type=''){ const t=el('toast'); t.className=''; t.textContent=msg; if(type) t.classList.add(type); t.classList.add('show'); setTimeout(()=>{ t.className=''; t.textContent=''; }, 3500); }
+    const showSpinner = ()=> el('spinnerOverlay').style.display='flex';
+    const hideSpinner = ()=> el('spinnerOverlay').style.display='none';
 
-    // Overlay helpers (menutup yang lain saat buka satu)
     const overlays = ['browseOverlay','accountOverlay','adminOverlay','settingsOverlay'];
     function closeAllOverlays(){ overlays.forEach(id => el(id).classList.remove('show')); }
     function openOverlay(id){ closeAllOverlays(); el(id).classList.add('show'); }
@@ -276,21 +292,20 @@
       if(e.target.matches('.close-btn')){ const toClose = e.target.dataset.close; if(toClose) el(toClose).classList.remove('show'); }
     });
 
-    // Auth helpers
+    // ====== Auth helpers ======
     const getUser = async()=> (await supabase.auth.getUser()).data.user;
     const getSession = async()=> (await supabase.auth.getSession()).data.session;
 
-    // Access helpers
     async function getAccess(){
       const user = await getUser(); if(!user) return { admin:false, allowed:[], username:null };
       const { data: prof } = await supabase.from('profiles').select('role, username').eq('id', user.id).single();
       const isAdmin = prof?.role === 'admin';
       if (isAdmin) return { admin:true, allowed:null, username: prof?.username || user.email };
       const { data: rows } = await supabase.from('roles_by_gudang').select('gudang').eq('user_id', user.id);
-      return { admin:false, allowed: (rows||[]).map(r=>r.gudang), username: prof?.username || user.email };
+      return { admin:false, allowed:(rows||[]).map(r=>r.gudang), username: prof?.username || user.email };
     }
 
-    // Data helpers
+    // ====== Data helpers ======
     async function pickNama(gudang){
       const { data, error } = await supabase.rpc('pick_pemeriksa', { gudang_in: gudang });
       if (error) throw error; return data;
@@ -300,25 +315,17 @@
       if (error) throw error;
     }
     async function listHistoryWithUser(nomor){
-      try {
-        const { data, error } = await supabase.rpc('list_history_with_user', { nomor_in: nomor || null });
-        if (error) throw error;
-        return data || [];
-      } catch {
-        // fallback
-        let q = supabase.from('penunjukan_history').select('*').order('id',{ascending:false});
-        if (nomor) q = q.eq('nomor', nomor);
-        const { data } = await q;
-        return (data||[]).map(r => ({ ...r, creator_username: (r.created_by||'').toString().slice(0,8) }));
-      }
+      const { data, error } = await supabase.rpc('list_history_with_user', { nomor_in: nomor || null });
+      if (error) throw error;
+      return data || [];
     }
     async function listPemeriksa(g){
       let q = supabase.from('pemeriksa').select('*').order('nama');
-      if (g) q = q.eq('gudang', g);
+      if (g!==undefined && g!==null && g!=='') q = q.eq('gudang', g);
       const { data, error } = await q; if (error) throw error; return data || [];
     }
     const addPemeriksa = (nama, gudang)=> supabase.from('pemeriksa').insert({ nama, gudang });
-    const updPemeriksa = (id, gudang)=> supabase.from('pemeriksa').update({ gudang }).eq('id', id);
+    const updPemeriksa = (id, gudang)=> supabase.from('pemeriksa').update({ gudang: gudang || null }).eq('id', id);
     const delPemeriksa = (id)=> supabase.from('pemeriksa').delete().eq('id', id);
     const setPreview   = (gudang, nama)=> supabase.from('preview_pick').upsert({ gudang, nama });
     async function getPoolRemainingCount(g){
@@ -327,126 +334,181 @@
       const list = await listPemeriksa(g); return list.length;
     }
 
-    // UI logic
+    // ====== State untuk tabel (filter/sort/paging) ======
+    let historyCache = [];       // data dari server
+    let filterText = '';
+    let sortKey = 'tanggal';
+    let sortDir = 'desc';        // 'asc' | 'desc'
+    let pageSize = 25;
+    let pageIndex = 1;           // 1-based
+
+    function applyFilterSortPaginate(){
+      let rows = historyCache.slice();
+
+      if(filterText){
+        const s = filterText.toLowerCase();
+        rows = rows.filter(r =>
+          (r.nomor||'').toLowerCase().includes(s) ||
+          (r.jenis||'').toLowerCase().includes(s) ||
+          (r.gudang||'').toLowerCase().includes(s) ||
+          (r.pemeriksa||'').toLowerCase().includes(s) ||
+          (r.creator_username||'').toLowerCase().includes(s)
+        );
+      }
+      rows.sort((a,b)=>{
+        let va = a[sortKey], vb = b[sortKey];
+        if(sortKey==='tanggal'){ va = new Date(va).getTime(); vb = new Date(vb).getTime(); }
+        if(va==null) va=''; if(vb==null) vb='';
+        if(va<vb) return sortDir==='asc'? -1:1;
+        if(va>vb) return sortDir==='asc'? 1:-1;
+        return 0;
+      });
+
+      const total = rows.length;
+      const pages = Math.max(1, Math.ceil(total / pageSize));
+      if(pageIndex>pages) pageIndex = pages;
+      const start = (pageIndex-1)*pageSize;
+      const pageRows = rows.slice(start, start+pageSize);
+
+      // render
+      tbodyRiwayat.innerHTML = pageRows.length ? pageRows.map((r,i)=>`
+        <tr>
+          <td>${start + i + 1}</td>
+          <td title="${r.nomor||''}">${r.nomor||''}</td>
+          <td title="${r.jenis||''}">${r.jenis||''}</td>
+          <td title="${r.gudang||''}">${r.gudang||''}</td>
+          <td>${r.tanggal? new Date(r.tanggal).toLocaleDateString('id-ID'):''}</td>
+          <td title="${r.pemeriksa||''}">${r.pemeriksa||''}</td>
+          <td title="${r.creator_username||''}">${r.creator_username||''}</td>
+        </tr>`).join('') : '<tr><td colspan="7">Belum ada penunjukan</td></tr>';
+
+      el('pageInfo').textContent = `${pages? pageIndex:0}/${pages}`;
+    }
+
+    async function refreshHistory(){
+      try{
+        showSpinner();
+        historyCache = await listHistoryWithUser(null);
+        applyFilterSortPaginate();
+      }catch(e){ showToast(e.message||'Gagal memuat riwayat','error'); }
+      finally{ hideSpinner(); }
+    }
+
+    // ====== UI logic ======
     async function applyRoleAndGudang(){
       const acc = await getAccess();
+      // tombol khusus admin
       el('btnAdminHeader').style.display    = acc.admin ? '' : 'none';
       el('btnSettingsHeader').style.display = acc.admin ? '' : 'none';
+
+      // tampilkan chip allowed gudang
+      chipGudang.textContent = acc.admin ? 'Admin: semua gudang' : `Gudang: ${(acc.allowed||[]).join(', ')||'-'}`;
+
+      // dropdown gudang (multi allowed -> tetap aktif)
       const sel = el('gudang');
       const list = acc.admin ? gudangList : gudangList.filter(g => acc.allowed.includes(g));
       sel.innerHTML = '<option value="">-- Pilih --</option>' + list.map(g=>`<option>${g}</option>`).join('');
-      if(!acc.admin && list.length===1){ sel.value = list[0]; sel.disabled = true; await updateTotal(); }
-      else { sel.disabled = false; }
+      sel.disabled = (!acc.admin && list.length===0);
+      if(!acc.admin && list.length===1){ sel.value = list[0]; }
+
+      // Admin modal dropdowns
       el('newGudang').innerHTML = '<option value="">-- Pilih --</option>'+gudangList.map(g=>`<option>${g}</option>`).join('');
       el('adminGudangPreview').innerHTML = '<option value="">-- Pilih --</option>'+gudangList.map(g=>`<option>${g}</option>`).join('');
+
+      // Browse: tombol hapus terpilih hanya untuk admin
+      el('btnDeleteSelected').style.display = acc.admin ? '' : 'none';
     }
-    async function renderRiwayat(nomor){
-      const rows = await listHistoryWithUser(nomor);
-      tbodyRiwayat.innerHTML = rows.length ? rows.map((r,i)=>`
-        <tr>
-          <td>${i+1}</td>
-          <td>${r.nomor}</td>
-          <td>${r.jenis}</td>
-          <td>${r.gudang}</td>
-          <td>${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
-          <td>${r.pemeriksa}</td>
-          <td>${r.creator_username || ''}</td>
-        </tr>`).join('') : '<tr><td colspan="7">Belum ada penunjukan</td></tr>';
-    }
+
     async function updateTotal(){
       const g = el('gudang').value; if(!g){ el('totalTersisa').innerText = '0'; return; }
       const n = await getPoolRemainingCount(g); el('totalTersisa').innerText = n;
     }
 
-    // Login overlay show/hide
-    const showLogin = ()=>{
-      closeAllOverlays(); // tutup menu lain
-      document.body.classList.add('blurred'); el('loginOverlay').classList.add('show');
-      el('loginError').style.display='none'; el('loginError').textContent='';
-    };
-    const hideLogin = ()=>{ el('loginOverlay').classList.remove('show'); document.body.classList.remove('blurred'); };
+    // ====== Realtime ======
+    let rtChannel = null;
+    function subscribeRealtime(){
+      if (rtChannel) { supabase.removeChannel(rtChannel); rtChannel = null; }
+      rtChannel = supabase.channel('rt-penunjukan')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'penunjukan_history' }, async (_payload) => {
+          // Auto refresh riwayat tiap ada insert/update/delete
+          await refreshHistory();
+        })
+        .subscribe();
+    }
 
     // ====== ENTRY ======
     document.addEventListener('DOMContentLoaded', async () => {
-      showLogin();
+      // tampilkan login overlay (tapi tombol header tetap)
+      document.body.classList.add('blurred'); el('loginOverlay').classList.add('show');
 
-      // session awal (biar refresh nggak bikin tombol hilang)
-      const session = await getSession();
-      if (session?.user) {
-        hideLogin();
+      // jika sudah punya session (refresh), langsung setup UI
+      const sess = await getSession();
+      if (sess?.user){
+        el('loginOverlay').classList.remove('show'); document.body.classList.remove('blurred');
         await applyRoleAndGudang();
-        await renderRiwayat();
+        await refreshHistory();
+        subscribeRealtime();
       }
 
-      // auth state
-      supabase.auth.onAuthStateChange(async (event, sess) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          const u = await getUser();
-          el('accountEmail').value = u?.email || '';
-          openOverlay('accountOverlay');
-          return;
-        }
-        if (sess?.user) {
-          hideLogin();
+      // auth listener
+      supabase.auth.onAuthStateChange(async (_evt, session) => {
+        if (session?.user){
+          el('loginOverlay').classList.remove('show'); document.body.classList.remove('blurred');
           await applyRoleAndGudang();
-          await renderRiwayat();
-        } else {
-          showLogin();
+          await refreshHistory();
+          subscribeRealtime();
+          // isi data akun
+          const u = await getUser(); el('accountEmail').value = u?.email || '';
+        }else{
+          if (rtChannel){ supabase.removeChannel(rtChannel); rtChannel = null; }
+          document.body.classList.add('blurred'); el('loginOverlay').classList.add('show');
         }
       });
 
-      // Header actions -> pastikan modal sebelumnya tertutup
+      // Header buttons
       el('btnBrowseHeader').onclick = ()=> openOverlay('browseOverlay');
       el('btnAccount').onclick = async ()=>{
-        const u = await getUser();
-        if(!u) { showToast('Silakan login dulu', 'error'); return; }
-        el('accountEmail').value = u.email || '';
-        el('accountNewPass').value = '';
-        el('accountNewPass2').value = '';
+        const u = await getUser(); if(!u) return showToast('Silakan login dulu','error');
+        el('accountEmail').value = u.email||''; el('accountNewPass').value=''; el('accountNewPass2').value='';
         openOverlay('accountOverlay');
       };
       el('btnAdminHeader').onclick = async ()=>{
-        const user = await getUser(); if(!user) return showToast('Silakan login', 'error');
+        const user = await getUser(); if(!user) return showToast('Silakan login','error');
         const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        if (prof?.role !== 'admin') return showToast('Hanya admin', 'error');
-        await renderAdmin();
-        openOverlay('adminOverlay');
+        if (prof?.role !== 'admin') return showToast('Hanya admin','error');
+        await renderAdmin(); openOverlay('adminOverlay');
       };
       el('btnSettingsHeader').onclick = async ()=>{
-        const user = await getUser(); if(!user) return showToast('Silakan login', 'error');
+        const user = await getUser(); if(!user) return showToast('Silakan login','error');
         const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        if (prof?.role !== 'admin') return showToast('Hanya admin', 'error');
-        await loadUsersAndRoles(); renderUserTable(); fillGudangOptions();
-        openOverlay('settingsOverlay');
+        if (prof?.role !== 'admin') return showToast('Hanya admin','error');
+        await loadUsersAndRoles(); renderUserTable(); fillGudangOptions(); openOverlay('settingsOverlay');
       };
 
       // Login
       el('loginBtn').onclick = async () => {
-        const email = el('loginUser').value.trim();
-        const pwd   = el('loginPass').value;
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+        const email = el('loginUser').value.trim(); const pwd = el('loginPass').value;
+        if(!email || !pwd){ el('loginError').textContent='Email & password wajib diisi'; el('loginError').style.display='block'; return; }
+        showSpinner();
+        const { error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+        hideSpinner();
         if (error) {
-          // poin #1 & #3: notifikasi salah password + email tetap, password dikosongkan
-          el('loginError').textContent = (error?.message || 'Email atau password salah.'); el('loginError').style.display='block';
-          el('loginPass').value = ''; el('loginPass').focus();
-          showToast('Email atau password salah', 'error');
-          return;
+          el('loginError').textContent = error.message || 'Email atau password salah.'; el('loginError').style.display='block';
+          el('loginPass').value=''; el('loginPass').focus();
+          showToast('Email atau password salah','error');
         }
-        // sukses -> onAuthStateChange akan handle
       };
-      el('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') el('loginBtn').click(); });
+      el('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') el('loginBtn').click(); });
 
-      // Logout (selalu ada, merah) + konfirmasi + kosongkan field
+      // Logout
       el('btnLogout').onclick = async ()=>{
         if (!confirm('Yakin ingin logout?')) return;
         await supabase.auth.signOut();
-        el('loginUser').value=''; el('loginPass').value=''; showLogin();
+        el('loginUser').value=''; el('loginPass').value='';
       };
 
-      // Input change
+      // Input panel
       el('gudang').addEventListener('change', updateTotal);
-
-      // Tunjuk pemeriksa
       el('btnTunjuk').onclick = async ()=>{
         const nom = el('nomor').value.trim();
         const jen = el('jenis').value; const gud = el('gudang').value;
@@ -455,38 +517,93 @@
         const { data: exist } = await supabase.from('penunjukan_history').select('id').eq('nomor', nom).eq('jenis', jen).limit(1);
         if (exist && exist.length) return showToast('Penunjukan nomor & jenis ini sudah ada','error');
         try {
+          showSpinner();
           const nama = await pickNama(gud);
           await addHistory({ nomor: nom, jenis: jen, gudang: gud, pemeriksa: nama });
           showToast('Berhasil menugaskan: ' + nama, 'success');
-          await updateTotal(); await renderRiwayat();
-        } catch(e){ showToast('Gagal menugaskan: ' + (e?.message||e), 'error'); }
+          await updateTotal(); // realtime akan memanggil refreshHistory()
+        } catch(e){ showToast('Gagal menugaskan: ' + (e?.message||e),'error'); }
+        finally{ hideSpinner(); }
       };
 
-      // Browse
+      // ===== Search, Sort, Pagination (client side) =====
+      el('searchText').addEventListener('input', ()=>{
+        filterText = el('searchText').value.trim().toLowerCase(); pageIndex = 1; applyFilterSortPaginate();
+      });
+      el('pageSize').addEventListener('change', ()=>{
+        pageSize = parseInt(el('pageSize').value,10); pageIndex = 1; applyFilterSortPaginate();
+      });
+      el('prevPage').onclick = ()=>{ if(pageIndex>1){ pageIndex--; applyFilterSortPaginate(); } };
+      el('nextPage').onclick = ()=>{
+        const totalPages = Math.max(1, Math.ceil(historyCache.filter(r=>{
+          if(!filterText) return true;
+          const s = filterText.toLowerCase();
+          return (r.nomor||'').toLowerCase().includes(s) || (r.jenis||'').toLowerCase().includes(s) ||
+                 (r.gudang||'').toLowerCase().includes(s) || (r.pemeriksa||'').toLowerCase().includes(s) ||
+                 (r.creator_username||'').toLowerCase().includes(s);
+        }).length / pageSize));
+        if(pageIndex<totalPages){ pageIndex++; applyFilterSortPaginate(); }
+      };
+      // sort header click
+      document.querySelectorAll('#riwayat thead th[data-key]').forEach(th=>{
+        th.addEventListener('click', ()=>{
+          const key = th.dataset.key;
+          if (key==='rownum') return;
+          if (sortKey===key){ sortDir = (sortDir==='asc'?'desc':'asc'); }
+          else { sortKey=key; sortDir='asc'; }
+          document.querySelectorAll('#riwayat thead th').forEach(x=>{ x.classList.remove('th-asc','th-desc'); if(x.classList.contains('th-sort')) x.classList.add('th-sort'); });
+          th.classList.remove('th-sort'); th.classList.add(sortDir==='asc'?'th-asc':'th-desc');
+          pageIndex=1; applyFilterSortPaginate();
+        });
+      });
+
+      // ===== Browse (with delete selected) =====
+      const browseBody = document.querySelector('#browseResults tbody');
       el('btnBrowseModal').onclick = async ()=>{
         const nom = el('browseNomor').value.trim();
-        const rows = await listHistoryWithUser(nom || undefined);
-        const body = document.querySelector('#browseResults tbody');
-        body.innerHTML = rows.length ? rows.map((r,i)=>`
-          <tr>
-            <td>${i+1}</td><td>${r.nomor}</td><td>${r.jenis}</td>
-            <td>${r.gudang}</td><td>${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
-            <td>${r.pemeriksa}</td><td>${r.creator_username||''}</td>
-          </tr>`).join('') : '<tr><td colspan="7">Tidak ada data</td></tr>';
+        showSpinner();
+        try{
+          const rows = await listHistoryWithUser(nom || null);
+          browseBody.innerHTML = rows.length ? rows.map((r,i)=>`
+            <tr data-id="${r.id}">
+              <td><input type="checkbox" class="chkRow"/></td>
+              <td>${i+1}</td><td>${r.nomor}</td><td>${r.jenis}</td>
+              <td>${r.gudang}</td><td>${r.tanggal? new Date(r.tanggal).toLocaleDateString('id-ID'):''}</td>
+              <td>${r.pemeriksa}</td><td>${r.creator_username||''}</td>
+            </tr>`).join('') : '<tr><td colspan="8">Tidak ada data</td></tr>';
+        }catch(e){ showToast(e.message||'Gagal load data','error'); }
+        finally{ hideSpinner(); }
+      };
+      el('chkSelectAll').onchange = (e)=>{
+        document.querySelectorAll('#browseResults .chkRow').forEach(ch=> ch.checked = e.target.checked);
+      };
+      el('btnDeleteSelected').onclick = async ()=>{
+        if(!confirm('Hapus riwayat yang dipilih?')) return;
+        const ids = [...document.querySelectorAll('#browseResults .chkRow:checked')].map(ch=> +ch.closest('tr').dataset.id);
+        if(!ids.length) return showToast('Tidak ada data terpilih','error');
+        try{
+          showSpinner();
+          const { error } = await supabase.from('penunjukan_history').delete().in('id', ids);
+          if (error) throw error;
+          showToast('Riwayat terpilih dihapus','success');
+          // realtime akan refresh tabel utama; kita trigger ulang Browse
+          el('btnBrowseModal').click();
+        }catch(e){ showToast(e.message||'Gagal hapus','error'); }
+        finally{ hideSpinner(); }
       };
 
-      // Admin
+      // ===== Admin =====
       async function renderAdmin(){
+        showSpinner();
         const { data: list, error } = await supabase.from('pemeriksa').select('*').order('nama');
+        hideSpinner();
         if (error) { showToast(error.message,'error'); return; }
         const rows = list||[];
         el('adminBody').innerHTML = rows.map(p=>`
           <tr data-id="${p.id}">
             <td>${p.nama}</td>
-            <td>
-              <select class="selGudang">${['',...gudangList].map(g=>`<option ${g===p.gudang?'selected':''}>${g||'-- Pilih --'}</option>`).join('')}</select>
-            </td>
-            <td><input type="checkbox" class="chkDel" /> Hapus</td>
+            <td><select class="selGudang">${['',...gudangList].map(g=>`<option ${g===(p.gudang||'')?'selected':''}>${g||'-- Pilih --'}</option>`).join('')}</select></td>
+            <td><input type="checkbox" class="chkDel"/> Hapus</td>
           </tr>`).join('');
         el('adminTotal').innerText = rows.length;
         el('newGudang').innerHTML = '<option value="">-- Pilih --</option>' + gudangList.map(g=>`<option>${g}</option>`).join('');
@@ -504,63 +621,63 @@
       el('btnAdd').onclick = async ()=>{
         const nm = el('newNama').value.trim(); const gd = el('newGudang').value;
         if(!nm || !gd) return showToast('Isi nama & gudang','error');
+        showSpinner();
         const { error } = await addPemeriksa(nm, gd);
+        hideSpinner();
         if (error) showToast(error.message,'error'); else { await renderAdmin(); showToast('Ditambahkan','success'); }
       };
       el('btnUpd').onclick = async ()=>{
         const rows = [...document.querySelectorAll('#adminBody tr')];
-        try {
+        try{
+          showSpinner();
           await Promise.all(rows.map(async tr => {
             const id = +tr.dataset.id; const gd = tr.querySelector('.selGudang').value || null;
             await updPemeriksa(id, gd);
           }));
+          hideSpinner();
           showToast('Perubahan disimpan','success');
-        } catch(e){ showToast(e.message||'Gagal update','error'); }
+        }catch(e){ hideSpinner(); showToast(e.message||'Gagal update','error'); }
       };
       el('btnDelSel').onclick = async ()=>{
         if(!confirm('Hapus baris yang dicentang?')) return;
         const rows = [...document.querySelectorAll('#adminBody tr')];
-        try {
-          await Promise.all(rows.filter(tr=>tr.querySelector('.chkDel').checked).map(async tr => {
-            await delPemeriksa(+tr.dataset.id);
-          }));
-          await renderAdmin(); showToast('Berhasil dihapus','success');
-        } catch(e){ showToast(e.message||'Gagal hapus','error'); }
+        const ids = rows.filter(tr=>tr.querySelector('.chkDel').checked).map(tr=>+tr.dataset.id);
+        if(!ids.length) return showToast('Tidak ada yang dipilih','error');
+        try{
+          showSpinner();
+          await Promise.all(ids.map(id => delPemeriksa(id)));
+          hideSpinner(); await renderAdmin(); showToast('Berhasil dihapus','success');
+        }catch(e){ hideSpinner(); showToast(e.message||'Gagal hapus','error'); }
       };
-      el('btnClearHist').onclick = async ()=>{
-        if(!confirm('Hapus seluruh riwayat?')) return;
-        const { error } = await supabase.from('penunjukan_history').delete().neq('id', -1);
-        if(error) return showToast(error.message,'error');
-        await renderRiwayat(); showToast('Riwayat dibersihkan','success');
-      };
-
-      // Reset Periode (poin #2): set semua gudang pemeriksa menjadi "-- Pilih --" + bersihkan pool/preview
+      // Reset Periode (kosongkan gudang semua pemeriksa + bersihkan pool & preview)
       el('btnResetPeriod').onclick = async ()=>{
-        if(!confirm('Reset periode? Semua pemeriksa akan menjadi "-- Pilih --", pool & preview dibersihkan.')) return;
-        try {
+        if(!confirm('Reset periode? Semua pemeriksa menjadi "-- Pilih --", pool & preview dibersihkan.')) return;
+        try{
+          showSpinner();
           const up = await supabase.from('pemeriksa').update({ gudang: null }).neq('id', -1);
           if (up.error) throw up.error;
           const del1 = await supabase.from('pools').delete().neq('gudang','');
           if (del1.error) throw del1.error;
           const del2 = await supabase.from('preview_pick').delete().neq('gudang','');
           if (del2.error) throw del2.error;
-          await renderAdmin(); await updateTotal();
+          hideSpinner();
+          await renderAdmin(); // agar dropdown berubah jadi "-- Pilih --"
+          // update counter & preview UI
+          el('adminGudangPreview').value=''; el('adminNext').innerText='-';
+          await updateTotal();
           showToast('Reset periode berhasil','success');
-        } catch(e){ showToast(e.message||'Gagal reset periode','error'); }
+        }catch(e){ hideSpinner(); showToast(e.message||'Gagal reset periode','error'); }
       };
 
-      // Settings (Admin) – tanpa reset password email
-      const setOv      = el('settingsOverlay');
-      const userTable  = document.querySelector('#userTable tbody');
-      const userRoles  = el('userRoles');
-      const userNameIn = el('userName');
-      const btnSaveUser= el('btnSaveUser');
-      const btnCancel  = el('btnCancelUser');
+      // ===== Settings (Admin) =====
+      const userTableBody = document.querySelector('#userTable tbody');
+      const userRoles = el('userRoles'); const userNameIn=el('userName');
+      const btnSaveUser = el('btnSaveUser'); const btnCancelUser=el('btnCancelUser');
       let usersCache = []; let rolesMap = {}; let editingUserId = null;
 
       function fillGudangOptions(){ userRoles.innerHTML = gudangList.map(g=>`<option value="${g}">${g}</option>`).join(''); }
       function renderUserTable(){
-        userTable.innerHTML = (usersCache||[]).map(u => `
+        userTableBody.innerHTML = (usersCache||[]).map(u => `
           <tr data-id="${u.id}">
             <td>${u.username||'(tanpa email)'}</td>
             <td>${u.role}</td>
@@ -572,7 +689,8 @@
           </tr>`).join('');
       }
       async function loadUsersAndRoles(){
-        // coba RPC; jika belum ada, fallback langsung ke tabel profiles (RLS akan melindungi)
+        showSpinner();
+        // coba RPC admin_list_users; jika belum ada, fallback ke table
         let users = [];
         const rpc = await supabase.rpc('admin_list_users');
         if (!rpc.error) users = rpc.data || [];
@@ -583,6 +701,7 @@
         usersCache = users;
         const { data: rbg } = await supabase.from('roles_by_gudang').select('user_id, gudang');
         rolesMap = {}; (rbg||[]).forEach(r => { (rolesMap[r.user_id] ??= []).push(r.gudang); });
+        hideSpinner();
       }
       document.querySelector('#userTable').onclick = async (e)=>{
         const id = e.target.dataset.id; if(!id) return;
@@ -592,11 +711,12 @@
           userNameIn.value = u?.username||'(tanpa email)';
           const allowed = rolesMap[id]||[];
           Array.from(userRoles.options).forEach(opt => { opt.selected = allowed.includes(opt.value); });
-          return;
         }
         if(e.target.classList.contains('btnClear')){
           if(!confirm('Kosongkan semua akses gudang user ini?')) return;
+          showSpinner();
           const { error } = await supabase.from('roles_by_gudang').delete().eq('user_id', id);
+          hideSpinner();
           if (error) return showToast(error.message,'error');
           await loadUsersAndRoles(); renderUserTable();
           if(editingUserId===id){ Array.from(userRoles.options).forEach(o=>o.selected=false); }
@@ -607,34 +727,37 @@
         if(!editingUserId) return showToast('Klik tombol Edit pada salah satu user dulu.','error');
         const selected = Array.from(userRoles.selectedOptions).map(o=>o.value);
         try{
+          showSpinner();
           const del = await supabase.from('roles_by_gudang').delete().eq('user_id', editingUserId);
           if(del.error) throw del.error;
           if(selected.length){
             const ins = await supabase.from('roles_by_gudang').insert(selected.map(g=>({ user_id: editingUserId, gudang: g })));
             if(ins.error) throw ins.error;
           }
+          hideSpinner();
           await loadUsersAndRoles(); renderUserTable();
           showToast('Akses gudang disimpan.','success');
-        }catch(e){ showToast(e.message||'Gagal simpan','error'); }
+        }catch(e){ hideSpinner(); showToast(e.message||'Gagal simpan','error'); }
       };
-      btnCancel.onclick = ()=>{ editingUserId=null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false); };
+      btnCancelUser.onclick = ()=>{ editingUserId=null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false); };
 
-      // Change password sendiri
+      // ===== Akun (ubah password sendiri) =====
       el('btnChangePass').onclick = async ()=>{
         const p1 = el('accountNewPass').value, p2 = el('accountNewPass2').value;
         if (!p1 || p1.length < 6) return showToast('Password minimal 6 karakter','error');
         if (p1 !== p2) return showToast('Konfirmasi password tidak cocok','error');
-        const { error } = await supabase.auth.updateUser({ password: p1 });
+        showSpinner(); const { error } = await supabase.auth.updateUser({ password: p1 }); hideSpinner();
         if (error) return showToast('Gagal mengubah password: ' + error.message, 'error');
-        showToast('Password berhasil diubah','success'); // poin #4
-        el('accountOverlay').classList.remove('show');
+        showToast('Password berhasil diubah','success'); el('accountOverlay').classList.remove('show');
       };
 
-    }); // DOMContentLoaded
+      // pertama kali load browse table kosong
+      el('btnBrowseModal').click();
+    });
   </script>
 
   <!--
-  OPSIONAL (disarankan) — SQL agar kolom PETUGAS tampil username & Settings bisa memuat user:
+  OPSIONAL — SQL bantu (jika belum ada) untuk kolom PETUGAS & admin settings:
   CREATE OR REPLACE FUNCTION public.list_history_with_user(nomor_in text default null)
   RETURNS TABLE (id bigint, nomor text, jenis text, gudang text, tanggal timestamptz, pemeriksa text, created_by uuid, creator_username text)
   LANGUAGE sql SECURITY DEFINER SET search_path=public AS $$
