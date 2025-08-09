@@ -19,40 +19,72 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; background: var(--gradient-bg); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
-    /* Blur saat overlay login, tapi header tetap bisa diklik */
-    body.blurred > header, body.blurred > main { filter: blur(4px); }
-    header { background: rgba(0,45,98,0.9); color: #fff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 1500; }
-    .title-wrapper h1 { font-size: 1.6rem; font-weight: 600; }
-    .title-wrapper h2 { font-size: .95rem; color: var(--accent-gold); margin-top: .25rem; font-weight: 500; }
-    .header-buttons button { margin-left: .5rem; background: transparent; color: #fff; border: 2px solid #fff; padding: .5rem 1rem; border-radius: var(--radius); cursor: pointer; transition: background .2s; }
-    .header-buttons button:hover { background: rgba(255,255,255,0.2); }
-    .btn.danger { background: #d9534f; color: #fff; border-color: #d9534f; }
-    .btn.danger:hover { background: #c12e2a; border-color: #c12e2a; }
-    main { flex: 1; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; display: grid; grid-template-columns: repeat(auto-fit,minmax(340px,1fr)); gap: 1.5rem; }
-    .panel { background: var(--panel-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); }
-    .panel h3 { margin-bottom: 1rem; color: var(--accent-blue); font-size: 1.05rem; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
-    label { display: block; margin-top: 1rem; font-size: .9rem; color: var(--text-muted); font-weight: 500; }
-    input, select { width: 100%; padding: .6rem; margin-top: .35rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 1rem; background: #fff; transition: border-color .2s, box-shadow .2s; }
-    input:focus, select:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 6px rgba(0,45,98,0.3); }
-    .btn { display: inline-block; padding: .75rem 1.2rem; font-weight: 700; font-size: .95rem; border-radius: 999px; border: none; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform .15s, box-shadow .15s; margin-top: .9rem; }
+    /* Blur saat overlay login (header tetap visible) */
+    body.blurred > header, body.blurred > main { filter: blur(3px); }
+
+    header {
+      background: rgba(0,45,98,0.95); color: #fff; padding: .7rem 1rem;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: var(--shadow); position: sticky; top: 0; z-index: 1500;
+    }
+    .title-wrapper h1 { font-size: 1.25rem; font-weight: 600; }
+    .title-wrapper h2 { font-size: .8rem; color: var(--accent-gold); margin-top: .2rem; font-weight: 500; }
+
+    .header-buttons button {
+      margin-left: .4rem; background: transparent; color: #fff;
+      border: 1.5px solid #fff; padding: .45rem .8rem; border-radius: 8px;
+      cursor: pointer; transition: background .15s, transform .05s; font-size: .9rem;
+    }
+    .header-buttons button:hover { background: rgba(255,255,255,0.18); }
+    .btn { border: none; border-radius: 999px; padding: .55rem 1rem; font-weight: 600; font-size: .92rem; cursor: pointer; transition: transform .12s, box-shadow .12s; }
     .btn.primary { background: var(--accent-gold); color: var(--accent-blue); }
-    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); background: var(--accent-blue); color: #fff; }
-    .btn.secondary { background: transparent; color: var(--accent-blue); border: 2px solid var(--accent-blue); }
+    .btn.primary:hover { transform: translateY(-1px); }
+    .btn.secondary { background: transparent; color: var(--accent-blue); border: 1.5px solid var(--accent-blue); }
     .btn.secondary:hover { background: var(--accent-blue); color: #fff; }
-    .btn.danger:disabled { opacity: .6; cursor: not-allowed; }
-    p.info { margin-top: .8rem; font-size: .95rem; color: var(--accent-blue); font-weight: 600; }
-    .table-wrapper { max-height: 60vh; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); margin-top: .6rem; }
+    .btn.danger { background: #d9534f; color: #fff; border: 1.5px solid #d9534f; }
+    .btn.danger:hover { background: #c12e2a; border-color: #c12e2a; }
+    .btn.small { padding: .45rem .8rem; font-size: .88rem; }
+
+    main { flex: 1; max-width: 1100px; margin: 1.2rem auto; padding: 0 1rem; display: grid; grid-template-columns: repeat(auto-fit,minmax(340px,1fr)); gap: 1rem; }
+    .panel { background: var(--panel-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.2rem; box-shadow: var(--shadow); }
+    .panel h3 { margin-bottom: .8rem; color: var(--accent-blue); font-size: 1rem; font-weight: 700; letter-spacing: .2px; text-transform: uppercase; }
+    label { display: block; margin-top: .8rem; font-size: .88rem; color: var(--text-muted); font-weight: 500; }
+    input, select {
+      width: 100%; padding: .55rem .6rem; margin-top: .35rem; border: 1px solid var(--border);
+      border-radius: 8px; font-size: .95rem; background: #fff; transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 5px rgba(0,45,98,0.25); }
+    p.info { margin-top: .6rem; font-size: .92rem; color: var(--accent-blue); font-weight: 600; }
+
+    .table-wrapper { max-height: 60vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin-top: .6rem; }
     table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-    th, td { padding: .6rem; border-bottom: 1px solid var(--border); text-align: left; }
+    th, td { padding: .55rem .6rem; border-bottom: 1px solid var(--border); text-align: left; }
     th { color: var(--accent-gold); position: sticky; top: 0; background: var(--panel-bg); z-index: 1; }
     tr:nth-child(even) { background: rgba(0,45,98,0.05); }
+
+    /* Overlay / Modal */
     .overlay, .login-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 1000; }
     .overlay.show, .login-overlay.show { display: flex; }
-    .modal, .login-modal { background: var(--panel-bg); border-radius: var(--radius); padding: 1.2rem 1.4rem; width: 100%; max-width: 760px; box-shadow: var(--shadow); position: relative; max-height: 85vh; overflow-y: auto; transform: translateY(-18px); opacity: 0; transition: transform .2s, opacity .2s; }
+    .modal, .login-modal {
+      background: var(--panel-bg); border-radius: 10px; padding: 1rem 1.1rem; width: 100%; max-width: 760px;
+      box-shadow: var(--shadow); position: relative; max-height: 85vh; overflow-y: auto;
+      transform: translateY(-14px); opacity: 0; transition: transform .15s, opacity .15s;
+    }
     .overlay.show .modal, .login-overlay.show .login-modal { transform: translateY(0); opacity: 1; }
-    .close-btn { position: absolute; top: .9rem; right: .9rem; width: 28px; height: 28px; background: var(--accent-gold); color: var(--accent-blue); border-radius: 50%; text-align: center; line-height: 28px; cursor: pointer; transition: background .2s; font-weight: 800; }
+    .close-btn { position: absolute; top: .6rem; right: .6rem; width: 26px; height: 26px; background: var(--accent-gold); color: var(--accent-blue); border-radius: 50%; text-align: center; line-height: 26px; cursor: pointer; font-weight: 800; }
     .close-btn:hover { background: var(--accent-blue); color: #fff; }
     small.hint { color: var(--text-muted); display: inline-block; margin-top: .25rem; }
+
+    /* Toast */
+    #toast {
+      position: fixed; right: 16px; bottom: 16px; z-index: 2000; display: none;
+      background: #333; color: #fff; padding: .6rem .8rem; border-radius: 8px; max-width: 80vw; box-shadow: var(--shadow); font-size: .9rem;
+    }
+    #toast.show { display: block; animation: fadein .15s ease, fadeout .2s ease 3.2s forwards; }
+    #toast.success { background: #2e7d32; }
+    #toast.error { background: #c62828; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+    @keyframes fadeout { to { opacity: 0; transform: translateY(6px);} }
   </style>
 </head>
 <body>
@@ -62,11 +94,11 @@
       <h2>KPU BC TIPE B BATAM</h2>
     </div>
     <div class="header-buttons">
-      <button id="btnBrowseHeader">Browse</button>
-      <button id="btnSettingsHeader" style="display:none">Settings</button>
-      <button id="btnAdminHeader" style="display:none">Admin</button>
-      <button id="btnAccount" class="btn secondary">Akun</button>
-      <button id="btnLogout" class="btn danger">Logout</button>
+      <button id="btnBrowseHeader" class="small">Browse</button>
+      <button id="btnSettingsHeader" class="small" style="display:none">Settings</button>
+      <button id="btnAdminHeader" class="small" style="display:none">Admin</button>
+      <button id="btnAccount" class="btn secondary small">Akun</button>
+      <button id="btnLogout" class="btn danger small">Logout</button>
     </div>
   </header>
 
@@ -83,7 +115,7 @@
       </select>
       <label for="gudang">Gudang</label>
       <select id="gudang"><option value="">-- Pilih --</option></select>
-      <button id="btnTunjuk" class="btn primary">Tunjuk Pemeriksa</button>
+      <button id="btnTunjuk" class="btn primary small">Tunjuk Pemeriksa</button>
       <p class="info">Total Tersisa: <span id="totalTersisa">0</span></p>
     </div>
 
@@ -106,12 +138,12 @@
   <!-- Browse Modal -->
   <div class="overlay" id="browseOverlay">
     <div class="modal">
-      <span class="close-btn" id="browseClose">&times;</span>
+      <span class="close-btn" data-close="browseOverlay">&times;</span>
       <h3>Browse Penunjukan</h3>
       <label>Nomor Pendaftaran</label>
       <input id="browseNomor" placeholder="(kosong = semua)" />
-      <button id="btnBrowseModal" class="btn primary">Tampilkan</button>
-      <div class="table-wrapper" style="margin-top:1rem;">
+      <button id="btnBrowseModal" class="btn primary small">Tampilkan</button>
+      <div class="table-wrapper" style="margin-top:.6rem;">
         <table id="browseResults">
           <thead>
             <tr>
@@ -128,21 +160,21 @@
   <!-- Login Modal -->
   <div class="login-overlay" id="loginOverlay">
     <div class="login-modal">
-      <span class="close-btn" id="loginClose">&times;</span>
       <h3>Login</h3>
       <label>Email</label>
       <input id="loginUser" type="email" placeholder="nama@contoh.com" />
       <label>Password</label>
       <input id="loginPass" type="password" />
-      <button id="loginBtn" class="btn primary">Masuk</button>
+      <button id="loginBtn" class="btn primary small" style="margin-top:.7rem;">Masuk</button>
       <small class="hint">Akun dikelola oleh admin melalui Supabase Dashboard.</small>
+      <div id="loginError" style="color:#c62828;margin-top:.4rem;font-size:.9rem;display:none;"></div>
     </div>
   </div>
 
   <!-- Akun (Ubah Password Sendiri) -->
   <div class="overlay" id="accountOverlay">
     <div class="modal">
-      <span class="close-btn" id="accountClose">&times;</span>
+      <span class="close-btn" data-close="accountOverlay">&times;</span>
       <h3>Akun Saya</h3>
       <p class="info">Ubah password untuk akun ini.</p>
       <label>Email</label>
@@ -151,36 +183,40 @@
       <input id="accountNewPass" type="password" />
       <label>Ulangi Password Baru</label>
       <input id="accountNewPass2" type="password" />
-      <button id="btnChangePass" class="btn primary">Simpan Password</button>
+      <button id="btnChangePass" class="btn primary small">Simpan Password</button>
     </div>
   </div>
 
   <!-- Admin Modal -->
   <div class="overlay" id="adminOverlay">
     <div class="modal">
-      <span class="close-btn" id="btnCloseAdmin">&times;</span>
+      <span class="close-btn" data-close="adminOverlay">&times;</span>
       <h3>Menu Admin</h3>
       <p class="info">Total Pemeriksa: <strong><span id="adminTotal"></span></strong></p>
+
       <label>Preview Pemeriksa Berikutnya</label>
       <select id="adminGudangPreview"><option value="">-- Pilih --</option></select>
       <p class="info">Selanjutnya: <strong><span id="adminNext">-</span></strong></p>
-      <table id="adminTable" style="margin-top:1rem;">
+
+      <table id="adminTable" style="margin-top:.6rem;">
         <thead>
           <tr><th>Nama</th><th>Gudang</th><th>Aksi</th></tr>
         </thead>
         <tbody id="adminBody"></tbody>
       </table>
-      <h4 style="margin-top:1rem">Tambah Pemeriksa</h4>
+
+      <h4 style="margin-top:.8rem">Tambah Pemeriksa</h4>
       <input id="newNama" placeholder="Nama baru" />
       <select id="newGudang"><option value="">-- Pilih --</option></select>
-      <div>
-        <button id="btnAdd" class="btn primary">Tambah</button>
-        <button id="btnUpd" class="btn secondary">Update</button>
-        <button id="btnDelSel" class="btn danger">Hapus yang Dipilih</button>
+      <div style="margin-top:.4rem;">
+        <button id="btnAdd" class="btn primary small">Tambah</button>
+        <button id="btnUpd" class="btn secondary small">Update</button>
+        <button id="btnDelSel" class="btn danger small">Hapus yang Dipilih</button>
       </div>
+
       <div style="margin-top:.6rem;">
-        <button id="btnClearHist" class="btn danger">Hapus Semua Riwayat</button>
-        <button id="btnResetPool" class="btn secondary">Reset Pool & Preview</button>
+        <button id="btnClearHist" class="btn danger small">Hapus Semua Riwayat</button>
+        <button id="btnResetPeriod" class="btn secondary small">Reset Periode</button>
       </div>
     </div>
   </div>
@@ -188,13 +224,13 @@
   <!-- Settings Modal (Admin) -->
   <div class="overlay" id="settingsOverlay">
     <div class="modal">
-      <span class="close-btn" id="settingsClose">&times;</span>
+      <span class="close-btn" data-close="settingsOverlay">&times;</span>
       <h3>Setting User (Admin)</h3>
-      <p style="margin:.3rem 0 .8rem;color:#666">
+      <p style="margin:.3rem 0 .6rem;color:#666">
         Tambah/hapus user & ganti password lewat <b>Supabase → Auth → Users</b>.
-        Di sini admin bisa atur <b>akses gudang</b> dan <b>kirim email reset password</b>.
+        Di sini admin hanya mengatur <b>akses gudang</b>.
       </p>
-      <table id="userTable" style="width:100%;margin-bottom:1rem;">
+      <table id="userTable" style="width:100%;margin-bottom:.6rem;">
         <thead><tr><th>Email</th><th>Role</th><th>Gudang</th><th>Aksi</th></tr></thead>
         <tbody></tbody>
       </table>
@@ -205,26 +241,40 @@
       <label>Allowed Gudang (Ctrl/⌘ + klik bisa multi)</label>
       <select id="userRoles" multiple size="6" style="width:100%;margin-top:.3rem;"></select>
 
-      <div style="margin-top:.6rem;">
-        <button id="btnSaveUser" class="btn primary">Simpan</button>
-        <button id="btnCancelUser" class="btn secondary">Batal</button>
+      <div style="margin-top:.5rem;">
+        <button id="btnSaveUser" class="btn primary small">Simpan</button>
+        <button id="btnCancelUser" class="btn secondary small">Batal</button>
       </div>
     </div>
   </div>
 
+  <div id="toast"></div>
+
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // === ISI DENGAN PROYEKMU ===
+    // === GANTI DENGAN PUNYAMU ===
     const SUPABASE_URL = 'https://dbgxlisqdtflxhqyrctz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZ3hsaXNxZHRmbHhocXlyY3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzU4MDEsImV4cCI6MjA3MDMxMTgwMX0.3k1i4UMtgaqvs6B6QwefOEonsroQXv9m933_Dj3rkBs';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const gudangList = ['HBB','BTA','B99','SEWU','DOMSEK','SEKUTER','GC','MARINA','BIROTIKA','BTC','POS','FEDEX','GLB','APLOG','DBM','IBL','AEI','RORO','PUNGGUR','KABIL','BANDARA','WH','NONGSA','BLP'];
 
-    // DOM helpers
+    // Helpers DOM
     const el = (id)=>document.getElementById(id);
     const tbodyRiwayat = document.querySelector('#riwayat tbody');
+
+    // Toast
+    function showToast(msg, type=''){ const t=el('toast'); t.className=''; t.textContent=msg; if(type) t.classList.add(type); t.classList.add('show'); setTimeout(()=>{ t.className=''; t.textContent=''; }, 3500); }
+
+    // Overlay helpers (menutup yang lain saat buka satu)
+    const overlays = ['browseOverlay','accountOverlay','adminOverlay','settingsOverlay'];
+    function closeAllOverlays(){ overlays.forEach(id => el(id).classList.remove('show')); }
+    function openOverlay(id){ closeAllOverlays(); el(id).classList.add('show'); }
+    document.body.addEventListener('click', (e)=>{
+      if(e.target.matches('.overlay.show')) e.target.classList.remove('show');
+      if(e.target.matches('.close-btn')){ const toClose = e.target.dataset.close; if(toClose) el(toClose).classList.remove('show'); }
+    });
 
     // Auth helpers
     const getUser = async()=> (await supabase.auth.getUser()).data.user;
@@ -255,7 +305,7 @@
         if (error) throw error;
         return data || [];
       } catch {
-        // fallback tanpa join username
+        // fallback
         let q = supabase.from('penunjukan_history').select('*').order('id',{ascending:false});
         if (nomor) q = q.eq('nomor', nomor);
         const { data } = await q;
@@ -282,13 +332,11 @@
       const acc = await getAccess();
       el('btnAdminHeader').style.display    = acc.admin ? '' : 'none';
       el('btnSettingsHeader').style.display = acc.admin ? '' : 'none';
-
       const sel = el('gudang');
       const list = acc.admin ? gudangList : gudangList.filter(g => acc.allowed.includes(g));
       sel.innerHTML = '<option value="">-- Pilih --</option>' + list.map(g=>`<option>${g}</option>`).join('');
       if(!acc.admin && list.length===1){ sel.value = list[0]; sel.disabled = true; await updateTotal(); }
       else { sel.disabled = false; }
-
       el('newGudang').innerHTML = '<option value="">-- Pilih --</option>'+gudangList.map(g=>`<option>${g}</option>`).join('');
       el('adminGudangPreview').innerHTML = '<option value="">-- Pilih --</option>'+gudangList.map(g=>`<option>${g}</option>`).join('');
     }
@@ -310,15 +358,19 @@
       const n = await getPoolRemainingCount(g); el('totalTersisa').innerText = n;
     }
 
-    // Overlay helpers
-    const showLogin = ()=>{ document.body.classList.add('blurred'); el('loginOverlay').classList.add('show'); };
+    // Login overlay show/hide
+    const showLogin = ()=>{
+      closeAllOverlays(); // tutup menu lain
+      document.body.classList.add('blurred'); el('loginOverlay').classList.add('show');
+      el('loginError').style.display='none'; el('loginError').textContent='';
+    };
     const hideLogin = ()=>{ el('loginOverlay').classList.remove('show'); document.body.classList.remove('blurred'); };
 
-    // ====== ENTRY POINT ======
+    // ====== ENTRY ======
     document.addEventListener('DOMContentLoaded', async () => {
-      showLogin(); // saat awal load
+      showLogin();
 
-      // 1) Cek session awal (biar refresh mulus)
+      // session awal (biar refresh nggak bikin tombol hilang)
       const session = await getSession();
       if (session?.user) {
         hideLogin();
@@ -326,13 +378,12 @@
         await renderRiwayat();
       }
 
-      // 2) Dengarkan perubahan auth (termasuk recovery)
+      // auth state
       supabase.auth.onAuthStateChange(async (event, sess) => {
         if (event === 'PASSWORD_RECOVERY') {
-          // Buka modal akun untuk set password baru dari link email
           const u = await getUser();
           el('accountEmail').value = u?.email || '';
-          document.getElementById('accountOverlay').classList.add('show');
+          openOverlay('accountOverlay');
           return;
         }
         if (sess?.user) {
@@ -344,83 +395,74 @@
         }
       });
 
-      // 3) Login
-      el('loginBtn').onclick = async () => {
-        try {
-          const email = el('loginUser').value.trim();
-          const pwd   = el('loginPass').value;
-          await supabase.auth.signInWithPassword({ email, password: pwd });
-          // sukses -> state change akan mengurus UI
-        } catch (e) {
-          alert('Login gagal: ' + (e?.message || e));
-          // poin #3: user (email) tetap, password dikosongkan
-          el('loginPass').value = '';
-          el('loginPass').focus();
-        }
-      };
-      el('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') el('loginBtn').click(); });
-
-      // 4) Logout (poin #1 & #2)
-      el('btnLogout').onclick = async () => {
-        if (!confirm('Yakin ingin logout?')) return;
-        await supabase.auth.signOut();
-        // kosongkan input login
-        el('loginUser').value = '';
-        el('loginPass').value = '';
-        // tampilkan overlay login
-        showLogin();
-      };
-
-      // 5) Akun Saya (ubah password sendiri) — poin #4
-      const accOv = document.getElementById('accountOverlay');
+      // Header actions -> pastikan modal sebelumnya tertutup
+      el('btnBrowseHeader').onclick = ()=> openOverlay('browseOverlay');
       el('btnAccount').onclick = async ()=>{
         const u = await getUser();
-        if(!u) { alert('Silakan login dulu'); return; }
+        if(!u) { showToast('Silakan login dulu', 'error'); return; }
         el('accountEmail').value = u.email || '';
         el('accountNewPass').value = '';
         el('accountNewPass2').value = '';
-        accOv.classList.add('show');
+        openOverlay('accountOverlay');
       };
-      document.getElementById('accountClose').onclick = ()=> accOv.classList.remove('show');
-      accOv.onclick = (e)=>{ if(e.target===accOv) accOv.classList.remove('show'); };
-      el('btnChangePass').onclick = async ()=>{
-        const p1 = el('accountNewPass').value;
-        const p2 = el('accountNewPass2').value;
-        if (!p1 || p1.length < 6) return alert('Password minimal 6 karakter');
-        if (p1 !== p2) return alert('Konfirmasi password tidak cocok');
-        try {
-          const { error } = await supabase.auth.updateUser({ password: p1 });
-          if (error) throw error;
-          alert('Password berhasil diubah.');
-          document.getElementById('accountOverlay').classList.remove('show');
-        } catch(e){ alert('Gagal mengubah password: ' + (e?.message||e)); }
+      el('btnAdminHeader').onclick = async ()=>{
+        const user = await getUser(); if(!user) return showToast('Silakan login', 'error');
+        const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        if (prof?.role !== 'admin') return showToast('Hanya admin', 'error');
+        await renderAdmin();
+        openOverlay('adminOverlay');
+      };
+      el('btnSettingsHeader').onclick = async ()=>{
+        const user = await getUser(); if(!user) return showToast('Silakan login', 'error');
+        const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        if (prof?.role !== 'admin') return showToast('Hanya admin', 'error');
+        await loadUsersAndRoles(); renderUserTable(); fillGudangOptions();
+        openOverlay('settingsOverlay');
       };
 
-      // 6) Input change
+      // Login
+      el('loginBtn').onclick = async () => {
+        const email = el('loginUser').value.trim();
+        const pwd   = el('loginPass').value;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+        if (error) {
+          // poin #1 & #3: notifikasi salah password + email tetap, password dikosongkan
+          el('loginError').textContent = (error?.message || 'Email atau password salah.'); el('loginError').style.display='block';
+          el('loginPass').value = ''; el('loginPass').focus();
+          showToast('Email atau password salah', 'error');
+          return;
+        }
+        // sukses -> onAuthStateChange akan handle
+      };
+      el('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') el('loginBtn').click(); });
+
+      // Logout (selalu ada, merah) + konfirmasi + kosongkan field
+      el('btnLogout').onclick = async ()=>{
+        if (!confirm('Yakin ingin logout?')) return;
+        await supabase.auth.signOut();
+        el('loginUser').value=''; el('loginPass').value=''; showLogin();
+      };
+
+      // Input change
       el('gudang').addEventListener('change', updateTotal);
 
-      // 7) Tunjuk pemeriksa
+      // Tunjuk pemeriksa
       el('btnTunjuk').onclick = async ()=>{
         const nom = el('nomor').value.trim();
         const jen = el('jenis').value; const gud = el('gudang').value;
-        if(!/^\d+$/.test(nom)) return alert('Nomor hanya boleh angka');
-        if(!jen || !gud) return alert('Lengkapi form');
+        if(!/^\d+$/.test(nom)) return showToast('Nomor hanya boleh angka','error');
+        if(!jen || !gud) return showToast('Lengkapi form','error');
+        const { data: exist } = await supabase.from('penunjukan_history').select('id').eq('nomor', nom).eq('jenis', jen).limit(1);
+        if (exist && exist.length) return showToast('Penunjukan nomor & jenis ini sudah ada','error');
         try {
-          const { data: exist } = await supabase.from('penunjukan_history').select('id').eq('nomor', nom).eq('jenis', jen).limit(1);
-          if (exist && exist.length) return alert('Penunjukan untuk nomor & jenis ini sudah ada');
           const nama = await pickNama(gud);
           await addHistory({ nomor: nom, jenis: jen, gudang: gud, pemeriksa: nama });
-          alert(`Berhasil menugaskan: ${nama}`);
-          await updateTotal();
-          await renderRiwayat();
-        } catch(e){ alert('Gagal menugaskan: ' + (e?.message||e)); console.error(e); }
+          showToast('Berhasil menugaskan: ' + nama, 'success');
+          await updateTotal(); await renderRiwayat();
+        } catch(e){ showToast('Gagal menugaskan: ' + (e?.message||e), 'error'); }
       };
 
-      // 8) Browse
-      const browseOv = el('browseOverlay');
-      el('btnBrowseHeader').onclick = ()=> browseOv.classList.add('show');
-      el('browseClose').onclick = ()=> browseOv.classList.remove('show');
-      browseOv.onclick = (e)=>{ if(e.target===browseOv) browseOv.classList.remove('show'); };
+      // Browse
       el('btnBrowseModal').onclick = async ()=>{
         const nom = el('browseNomor').value.trim();
         const rows = await listHistoryWithUser(nom || undefined);
@@ -433,20 +475,10 @@
           </tr>`).join('') : '<tr><td colspan="7">Tidak ada data</td></tr>';
       };
 
-      // 9) Admin
-      const adminOv = el('adminOverlay');
-      el('btnAdminHeader').onclick = async ()=>{
-        const user = await getUser(); if(!user) return alert('Silakan login');
-        const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        if (prof?.role !== 'admin') return alert('Hanya admin');
-        await renderAdmin();
-        adminOv.classList.add('show');
-      };
-      el('btnCloseAdmin').onclick = ()=> adminOv.classList.remove('show');
-      adminOv.onclick = (e)=>{ if(e.target===adminOv) adminOv.classList.remove('show'); };
+      // Admin
       async function renderAdmin(){
         const { data: list, error } = await supabase.from('pemeriksa').select('*').order('nama');
-        if (error) { alert(error.message); return; }
+        if (error) { showToast(error.message,'error'); return; }
         const rows = list||[];
         el('adminBody').innerHTML = rows.map(p=>`
           <tr data-id="${p.id}">
@@ -467,23 +499,23 @@
         if (!candidates.length){ out.innerText = '-'; return; }
         const cand = candidates[Math.floor(Math.random()*candidates.length)];
         try { await setPreview(g, cand); out.innerText = cand; }
-        catch(e){ alert(e.message||'Gagal set preview'); }
+        catch(e){ showToast(e.message||'Gagal set preview','error'); }
       };
       el('btnAdd').onclick = async ()=>{
         const nm = el('newNama').value.trim(); const gd = el('newGudang').value;
-        if(!nm || !gd) return alert('Isi nama & gudang');
+        if(!nm || !gd) return showToast('Isi nama & gudang','error');
         const { error } = await addPemeriksa(nm, gd);
-        if (error) alert(error.message); else { await renderAdmin(); alert('Ditambahkan'); }
+        if (error) showToast(error.message,'error'); else { await renderAdmin(); showToast('Ditambahkan','success'); }
       };
       el('btnUpd').onclick = async ()=>{
         const rows = [...document.querySelectorAll('#adminBody tr')];
         try {
           await Promise.all(rows.map(async tr => {
-            const id = +tr.dataset.id; const gd = tr.querySelector('.selGudang').value;
+            const id = +tr.dataset.id; const gd = tr.querySelector('.selGudang').value || null;
             await updPemeriksa(id, gd);
           }));
-          alert('Perubahan disimpan');
-        } catch(e){ alert(e.message||'Gagal update'); }
+          showToast('Perubahan disimpan','success');
+        } catch(e){ showToast(e.message||'Gagal update','error'); }
       };
       el('btnDelSel').onclick = async ()=>{
         if(!confirm('Hapus baris yang dicentang?')) return;
@@ -492,83 +524,68 @@
           await Promise.all(rows.filter(tr=>tr.querySelector('.chkDel').checked).map(async tr => {
             await delPemeriksa(+tr.dataset.id);
           }));
-          await renderAdmin();
-        } catch(e){ alert(e.message||'Gagal hapus'); }
+          await renderAdmin(); showToast('Berhasil dihapus','success');
+        } catch(e){ showToast(e.message||'Gagal hapus','error'); }
       };
       el('btnClearHist').onclick = async ()=>{
         if(!confirm('Hapus seluruh riwayat?')) return;
-        try { await supabase.from('penunjukan_history').delete().neq('id', -1); await renderRiwayat(); alert('Riwayat dibersihkan'); }
-        catch(e){ alert(e.message||'Gagal hapus riwayat'); }
-      };
-      el('btnResetPool').onclick = async ()=>{
-        if(!confirm('Reset semua pool & preview?')) return;
-        try {
-          await supabase.from('pools').delete().neq('gudang','');
-          await supabase.from('preview_pick').delete().neq('gudang','');
-          await updateTotal();
-          alert('Pool & preview direset');
-        } catch(e){ alert(e.message||'Gagal reset'); }
+        const { error } = await supabase.from('penunjukan_history').delete().neq('id', -1);
+        if(error) return showToast(error.message,'error');
+        await renderRiwayat(); showToast('Riwayat dibersihkan','success');
       };
 
-      // 10) Settings (Admin) + reset password email — poin #5
+      // Reset Periode (poin #2): set semua gudang pemeriksa menjadi "-- Pilih --" + bersihkan pool/preview
+      el('btnResetPeriod').onclick = async ()=>{
+        if(!confirm('Reset periode? Semua pemeriksa akan menjadi "-- Pilih --", pool & preview dibersihkan.')) return;
+        try {
+          const up = await supabase.from('pemeriksa').update({ gudang: null }).neq('id', -1);
+          if (up.error) throw up.error;
+          const del1 = await supabase.from('pools').delete().neq('gudang','');
+          if (del1.error) throw del1.error;
+          const del2 = await supabase.from('preview_pick').delete().neq('gudang','');
+          if (del2.error) throw del2.error;
+          await renderAdmin(); await updateTotal();
+          showToast('Reset periode berhasil','success');
+        } catch(e){ showToast(e.message||'Gagal reset periode','error'); }
+      };
+
+      // Settings (Admin) – tanpa reset password email
       const setOv      = el('settingsOverlay');
-      const setBtn     = el('btnSettingsHeader');
-      const setClose   = el('settingsClose');
       const userTable  = document.querySelector('#userTable tbody');
       const userRoles  = el('userRoles');
       const userNameIn = el('userName');
       const btnSaveUser= el('btnSaveUser');
       const btnCancel  = el('btnCancelUser');
-      let usersCache = [];
-      let rolesMap   = {};
-      let editingUserId = null;
+      let usersCache = []; let rolesMap = {}; let editingUserId = null;
 
       function fillGudangOptions(){ userRoles.innerHTML = gudangList.map(g=>`<option value="${g}">${g}</option>`).join(''); }
       function renderUserTable(){
         userTable.innerHTML = (usersCache||[]).map(u => `
-          <tr data-id="${u.id}" data-email="${u.username||''}">
+          <tr data-id="${u.id}">
             <td>${u.username||'(tanpa email)'}</td>
             <td>${u.role}</td>
             <td>${(rolesMap[u.id]||[]).join(', ')}</td>
             <td>
-              <button class="btn secondary btnEdit" data-id="${u.id}">Edit</button>
-              <button class="btn danger btnClear" data-id="${u.id}">Kosongkan Gudang</button>
-              <button class="btn primary btnResetPw" data-id="${u.id}" data-email="${u.username||''}">Kirim Reset Password</button>
+              <button class="btn secondary small btnEdit" data-id="${u.id}">Edit</button>
+              <button class="btn danger small btnClear" data-id="${u.id}">Kosongkan Gudang</button>
             </td>
           </tr>`).join('');
       }
       async function loadUsersAndRoles(){
-        try {
-          const { data: users, error: e1 } = await supabase.rpc('admin_list_users');
-          if (e1) throw e1;
-          usersCache = users || [];
-        } catch {
-          alert('Fungsi admin_list_users belum dibuat. Lihat komentar SQL di akhir file.');
-          usersCache = [];
+        // coba RPC; jika belum ada, fallback langsung ke tabel profiles (RLS akan melindungi)
+        let users = [];
+        const rpc = await supabase.rpc('admin_list_users');
+        if (!rpc.error) users = rpc.data || [];
+        else {
+          const sel = await supabase.from('profiles').select('id, username, role').order('username');
+          if (!sel.error) users = sel.data || [];
         }
+        usersCache = users;
         const { data: rbg } = await supabase.from('roles_by_gudang').select('user_id, gudang');
-        rolesMap = {};
-        (rbg||[]).forEach(r => {
-          if(!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
-          rolesMap[r.user_id].push(r.gudang);
-        });
+        rolesMap = {}; (rbg||[]).forEach(r => { (rolesMap[r.user_id] ??= []).push(r.gudang); });
       }
-      setBtn.onclick = async ()=>{
-        const user = await getUser(); if(!user) return alert('Silakan login');
-        const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        if (prof?.role !== 'admin') return alert('Hanya admin');
-        setOv.classList.add('show');
-        fillGudangOptions();
-        await loadUsersAndRoles();
-        renderUserTable();
-      };
-      setClose.onclick = ()=> setOv.classList.remove('show');
-      setOv.onclick    = e=>{ if(e.target===setOv) setOv.classList.remove('show'); };
-
       document.querySelector('#userTable').onclick = async (e)=>{
-        const id = e.target.dataset.id;
-        if(!id) return;
-
+        const id = e.target.dataset.id; if(!id) return;
         if(e.target.classList.contains('btnEdit')){
           editingUserId = id;
           const u = usersCache.find(x=>x.id===id);
@@ -580,26 +597,14 @@
         if(e.target.classList.contains('btnClear')){
           if(!confirm('Kosongkan semua akses gudang user ini?')) return;
           const { error } = await supabase.from('roles_by_gudang').delete().eq('user_id', id);
-          if (error) { alert(error.message); return; }
+          if (error) return showToast(error.message,'error');
           await loadUsersAndRoles(); renderUserTable();
           if(editingUserId===id){ Array.from(userRoles.options).forEach(o=>o.selected=false); }
-          return;
-        }
-        if(e.target.classList.contains('btnResetPw')){
-          const email = e.target.dataset.email;
-          if(!email) return alert('User tidak punya email/username.');
-          try {
-            // kirim email reset password (butuh SMTP terkonfigurasi)
-            await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
-            alert('Email reset password dikirim ke: ' + email);
-          } catch(err){
-            alert('Gagal kirim email reset: ' + (err?.message || err));
-          }
-          return;
+          showToast('Akses gudang dikosongkan','success');
         }
       };
       btnSaveUser.onclick = async ()=>{
-        if(!editingUserId) return alert('Klik tombol Edit pada salah satu user dulu.');
+        if(!editingUserId) return showToast('Klik tombol Edit pada salah satu user dulu.','error');
         const selected = Array.from(userRoles.selectedOptions).map(o=>o.value);
         try{
           const del = await supabase.from('roles_by_gudang').delete().eq('user_id', editingUserId);
@@ -609,30 +614,30 @@
             if(ins.error) throw ins.error;
           }
           await loadUsersAndRoles(); renderUserTable();
-          alert('Akses gudang disimpan.');
-        }catch(e){ alert(e.message||'Gagal simpan'); }
+          showToast('Akses gudang disimpan.','success');
+        }catch(e){ showToast(e.message||'Gagal simpan','error'); }
       };
-      btnCancel.onclick = ()=>{
-        editingUserId = null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false);
+      btnCancel.onclick = ()=>{ editingUserId=null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false); };
+
+      // Change password sendiri
+      el('btnChangePass').onclick = async ()=>{
+        const p1 = el('accountNewPass').value, p2 = el('accountNewPass2').value;
+        if (!p1 || p1.length < 6) return showToast('Password minimal 6 karakter','error');
+        if (p1 !== p2) return showToast('Konfirmasi password tidak cocok','error');
+        const { error } = await supabase.auth.updateUser({ password: p1 });
+        if (error) return showToast('Gagal mengubah password: ' + error.message, 'error');
+        showToast('Password berhasil diubah','success'); // poin #4
+        el('accountOverlay').classList.remove('show');
       };
 
     }); // DOMContentLoaded
   </script>
 
   <!--
-  ============================
-  (Opsional tapi direkomendasikan) — JALANKAN SEKALI DI SQL EDITOR
-  Agar kolom PETUGAS tampil email/username & Settings bisa memuat user:
-  ============================
+  OPSIONAL (disarankan) — SQL agar kolom PETUGAS tampil username & Settings bisa memuat user:
   CREATE OR REPLACE FUNCTION public.list_history_with_user(nomor_in text default null)
-  RETURNS TABLE (
-    id bigint, nomor text, jenis text, gudang text, tanggal timestamptz,
-    pemeriksa text, created_by uuid, creator_username text
-  )
-  LANGUAGE sql
-  SECURITY DEFINER
-  SET search_path = public
-  AS $$
+  RETURNS TABLE (id bigint, nomor text, jenis text, gudang text, tanggal timestamptz, pemeriksa text, created_by uuid, creator_username text)
+  LANGUAGE sql SECURITY DEFINER SET search_path=public AS $$
     select h.id, h.nomor, h.jenis, h.gudang, h.tanggal, h.pemeriksa, h.created_by, p.username as creator_username
     from public.penunjukan_history h
     join public.profiles p on p.id = h.created_by
@@ -644,10 +649,7 @@
 
   CREATE OR REPLACE FUNCTION public.admin_list_users()
   RETURNS TABLE (id uuid, username text, role text)
-  LANGUAGE sql
-  SECURITY DEFINER
-  SET search_path = public
-  AS $$
+  LANGUAGE sql SECURITY DEFINER SET search_path=public AS $$
     select id, username, role from public.profiles
     where public.is_admin()
     order by username nulls last
