@@ -1,5 +1,5 @@
-const SUPABASE_URL = https://dbgxlisqdtflxhqyrctz.supabase.co;
-const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZ3hsaXNxZHRmbHhocXlyY3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzU4MDEsImV4cCI6MjA3MDMxMTgwMX0.3k1i4UMtgaqvs6B6QwefOEonsroQXv9m933_Dj3rkBs;
+<!DOCTYPE html>
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -168,7 +168,7 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
     </div>
   </div>
 
-  <!-- Settings Modal (info saja) -->
+  <!-- Settings Modal (info) -->
   <div class="overlay" id="settingsOverlay">
     <div class="modal">
       <span class="close-btn" id="settingsClose">&times;</span>
@@ -179,17 +179,18 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
         <li>Pastikan <code>profiles</code> otomatis terbuat via trigger, atau isi manual.</li>
         <li>Atur akses gudang di tabel <code>roles_by_gudang</code> (via SQL/Spreadsheet Editor).</li>
       </ol>
-      <small class="hint">Halaman ini bersifat informasi agar aplikasi tetap 100% client‑side.</small>
+      <small class="hint">Halaman ini bersifat informasi agar aplikasi tetap 100% client-side.</small>
     </div>
   </div>
 
   <script type="module">
-    // === GANTI INI DENGAN PUNYA ANDA ===
-    const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR-ANON-KEY';
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // === KUNCI PROYEK KAMU (SUDAH DIISI) ===
+    const SUPABASE_URL = 'https://dbgxlisqdtflxhqyrctz.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZ3hsaXNxZHRmbHhocXlyY3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzU4MDEsImV4cCI6MjA3MDMxMTgwMX0.3k1i4UMtgaqvs6B6QwefOEonsroQXv9m933_Dj3rkBs';
 
     // === INIT SUPABASE ===
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // === KONSTAN ===
@@ -224,13 +225,12 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
       const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
       let q = supabase.from('penunjukan_history').select('*').order('id', { ascending:false });
       if (nomor) q = q.eq('nomor', nomor);
-      // RLS sudah batasi non-admin, jadi tak perlu filter manual
       const { data, error } = await q; if (error) throw error; return data || [];
     }
 
     async function pickNama(gudang){
       const { data, error } = await supabase.rpc('pick_pemeriksa', { gudang_in: gudang });
-      if (error) throw error; return data; // string nama
+      if (error) throw error; return data;
     }
     async function addHistory({ nomor, jenis, gudang, pemeriksa }){
       const { error } = await supabase.from('penunjukan_history').insert({ nomor, jenis, gudang, pemeriksa });
@@ -259,7 +259,6 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
       if (error) throw error;
     }
     async function getPoolRemainingCount(g){
-      // Jika pool ada → length remaining; jika tidak ada → hitung master pemeriksa untuk gudang tsb
       const { data: pool } = await supabase.from('pools').select('remaining').eq('gudang', g).single();
       if (pool && Array.isArray(pool.remaining) && pool.remaining.length) return pool.remaining.length;
       const list = await listPemeriksa(g); return list.length;
@@ -274,7 +273,6 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
       if(!acc.admin && list.length===1){ sel.value = list[0]; sel.disabled = true; updateTotal(); }
       el('btnAdminHeader').style.display = acc.admin ? '' : 'none';
       el('btnSettingsHeader').style.display = acc.admin ? '' : '';
-      // admin modal dropdowns
       el('newGudang').innerHTML = '<option value="">-- Pilih --</option>' + gudangList.map(g=>`<option>${g}</option>`).join('');
       el('adminGudangPreview').innerHTML = '<option value="">-- Pilih --</option>' + gudangList.map(g=>`<option>${g}</option>`).join('');
     }
@@ -300,11 +298,9 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 
     // === BIND EVENTS ===
     document.addEventListener('DOMContentLoaded', async () => {
-      // Tampilkan login overlay sampai auth ada
       document.body.classList.add('blurred');
       el('loginOverlay').classList.add('show');
 
-      // Auth state
       supabase.auth.onAuthStateChange(async (_evt, session) => {
         if (!session?.user){
           document.body.classList.add('blurred'); el('loginOverlay').classList.add('show'); return;
@@ -314,28 +310,23 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
         await renderRiwayat();
       });
 
-      // Login
       el('loginBtn').onclick = async () => {
         try { await signIn(el('loginUser').value.trim(), el('loginPass').value); }
-        catch(e){ alert(e.message || 'Login gagal'); }
+        catch(e){ alert('Login gagal: ' + (e?.message||e)); console.error(e); }
       };
       el('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') el('loginBtn').click(); });
-      el('loginClose').onclick = ()=>{}; // tidak menutup; user harus login
+      el('loginClose').onclick = ()=>{};
 
-      // Logout
       el('btnLogout').onclick = async () => { await signOut(); };
 
-      // Input change → update counter
       el('gudang').addEventListener('change', updateTotal);
 
-      // Tunjuk
       el('btnTunjuk').onclick = async () => {
         const nom = el('nomor').value.trim();
         const jen = el('jenis').value; const gud = el('gudang').value;
         if(!/^\d+$/.test(nom)) return alert('Nomor hanya boleh angka');
         if(!jen || !gud) return alert('Lengkapi form');
         try {
-          // opsional: cek unik (unik index di DB juga melindungi)
           const { data: exist } = await supabase.from('penunjukan_history').select('id').eq('nomor', nom).eq('jenis', jen).limit(1);
           if (exist && exist.length) return alert('Penunjukan untuk nomor & jenis ini sudah ada');
 
@@ -344,10 +335,9 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
           alert(`Berhasil menugaskan: ${nama}`);
           await updateTotal();
           await renderRiwayat();
-        } catch(e){ alert(e.message || 'Gagal menugaskan'); }
+        } catch(e){ alert('Gagal menugaskan: ' + (e?.message||e)); console.error(e); }
       };
 
-      // Browse
       const browseOv = el('browseOverlay');
       el('btnBrowseHeader').onclick = ()=> browseOv.classList.add('show');
       el('browseClose').onclick = ()=> browseOv.classList.remove('show');
@@ -364,7 +354,6 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
           </tr>`).join('') : '<tr><td colspan="7">Tidak ada data</td></tr>';
       };
 
-      // Admin
       const adminOv = el('adminOverlay');
       el('btnAdminHeader').onclick = async ()=>{
         const user = await me(); if(!user) return alert('Silakan login');
@@ -392,11 +381,9 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
         el('newGudang').innerHTML = '<option value="">-- Pilih --</option>' + gudangList.map(g=>`<option>${g}</option>`).join('');
       }
 
-      // Admin preview pick
       el('adminGudangPreview').onchange = async function(){
         const g = this.value; const out = el('adminNext');
         if(!g){ out.innerText='-'; return; }
-        // kandidat dari pool jika ada; jika kosong pakai seluruh master
         const { data: pool } = await supabase.from('pools').select('remaining').eq('gudang', g).single();
         let candidates = (pool?.remaining?.length ? pool.remaining.slice() : (await listPemeriksa(g)).map(p=>p.nama));
         if (!candidates.length){ out.innerText = '-'; return; }
@@ -405,7 +392,6 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
         catch(e){ alert(e.message||'Gagal set preview'); }
       };
 
-      // Admin add / update / delete
       el('btnAdd').onclick = async ()=>{
         const nm = el('newNama').value.trim(); const gd = el('newGudang').value;
         if(!nm || !gd) return alert('Isi nama & gudang');
@@ -433,7 +419,6 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
         } catch(e){ alert(e.message||'Gagal hapus'); }
       };
 
-      // Admin clear history & reset pool
       el('btnClearHist').onclick = async ()=>{
         if(!confirm('Hapus seluruh riwayat?')) return;
         try { await supabase.from('penunjukan_history').delete().neq('id', -1); await renderRiwayat(); alert('Riwayat dibersihkan'); }
@@ -449,7 +434,6 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
         } catch(e){ alert(e.message||'Gagal reset'); }
       };
 
-      // Settings modal (info)
       const setOv = el('settingsOverlay');
       el('btnSettingsHeader').onclick = ()=> setOv.classList.add('show');
       el('settingsClose').onclick = ()=> setOv.classList.remove('show');
@@ -458,5 +442,3 @@ const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
   </script>
 </body>
 </html>
-
-
