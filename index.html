@@ -221,9 +221,48 @@
     <div class="modal">
       <span class="close-btn" data-close="browseOverlay">&times;</span>
       <h3>Browse Penunjukan</h3>
-      <label>Nomor Pendaftaran</label>
-      <input id="browseNomor" placeholder="(kosong = semua)" />
-      <button id="btnBrowseModal" class="btn primary small">Tampilkan</button>
+
+      <!-- ====== Tambahan filter multi-parameter (tetap ringan) ====== -->
+      <div style="display:grid;grid-template-columns: repeat(auto-fit,minmax(160px,1fr));gap:.6rem; margin:.6rem 0 .2rem;">
+        <div>
+          <label for="browseNomor">Nomor</label>
+          <input id="browseNomor" placeholder="(kosong = semua)" />
+        </div>
+        <div>
+          <label for="browseJenis">Jenis</label>
+          <select id="browseJenis">
+            <option value="">-- Semua --</option>
+            <option>01 LDP IN</option><option>01 LDP OUT</option><option>01 TLDPP</option>
+            <option>02 OUT</option><option>02 IN</option><option>03 IN</option>
+          </select>
+        </div>
+        <div>
+          <label for="browseGudang">Gudang</label>
+          <select id="browseGudang"><option value="">-- Semua --</option></select>
+        </div>
+        <div>
+          <label for="browseFrom">Dari Tanggal</label>
+          <input id="browseFrom" type="date" />
+        </div>
+        <div>
+          <label for="browseTo">Sampai</label>
+          <input id="browseTo" type="date" />
+        </div>
+        <div>
+          <label for="browsePemeriksa">Pemeriksa</label>
+          <input id="browsePemeriksa" placeholder="Nama pemeriksa" />
+        </div>
+        <div>
+          <label for="browsePetugas">Petugas</label>
+          <input id="browsePetugas" placeholder="Email/username petugas" />
+        </div>
+      </div>
+      <small class="hint">Browse dapat menampilkan semua data apabila fungsi <b>browse_history_all</b> sudah dibuat di database.</small>
+      <div style="margin-top:.5rem;">
+        <button id="btnBrowseModal" class="btn primary small">Tampilkan</button>
+        <button id="btnBrowseReset" class="btn secondary small" style="margin-left:.3rem;">Reset</button>
+      </div>
+
       <div class="table-wrapper" style="margin-top:.6rem;">
         <table id="browseResults">
           <thead>
@@ -431,6 +470,8 @@
       else { sel.disabled = false; }
       el('newGudang').innerHTML = '<option value="">-- Pilih --</option>'+gudangList.map(g=>`<option>${g}</option>`).join('');
       el('adminGudangPreview').innerHTML = '<option value="">-- Pilih --</option>'+gudangList.map(g=>`<option>${g}</option>`).join('');
+      // isi gudang di Browse
+      el('browseGudang').innerHTML = '<option value="">-- Semua --</option>' + gudangList.map(g=>`<option>${g}</option>`).join('');
     }
     async function renderRiwayat(nomor){
   showLoading(true, 'Memuat riwayat…');
@@ -465,6 +506,64 @@
           await renderRiwayat();
         })
         .subscribe();
+    }
+
+    // === BROWSE: helper filter & fetch ===
+    function getBrowseParams(){
+      return {
+        nomor_in: (el('browseNomor').value || '').trim() || null,
+        jenis_in: el('browseJenis').value || null,
+        gudang_in: el('browseGudang').value || null,
+        from_date: el('browseFrom').value || null,
+        to_date: el('browseTo').value || null,
+        pemeriksa_in: (el('browsePemeriksa').value || '').trim() || null,
+        petugas_in: (el('browsePetugas').value || '').trim() || null
+      };
+    }
+
+    function matchRowClient(r, p){
+      // p = params
+      if (p.nomor_in && String(r.nomor).toLowerCase().indexOf(p.nomor_in.toLowerCase()) === -1) return false;
+      if (p.jenis_in && r.jenis !== p.jenis_in) return false;
+      if (p.gudang_in && r.gudang !== p.gudang_in) return false;
+      if (p.pemeriksa_in && (!r.pemeriksa || r.pemeriksa.toLowerCase().indexOf(p.pemeriksa_in.toLowerCase()) === -1)) return false;
+      if (p.petugas_in){
+        const creator = (r.creator_username||'').toLowerCase();
+        if (creator.indexOf(p.petugas_in.toLowerCase()) === -1) return false;
+      }
+      if (p.from_date || p.to_date){
+        const d = new Date(r.tanggal);
+        if (p.from_date && d < new Date(p.from_date)) return false;
+        if (p.to_date) { const t = new Date(p.to_date); t.setHours(23,59,59,999); if (d > t) return false; }
+      }
+      return true;
+    }
+
+    async function browseFetchAll(params){
+      // Coba panggil RPC lintas gudang (SECURITY DEFINER) → kalau tidak ada, fallback
+      try{
+        const { data, error } = await supabase.rpc('browse_history_all', params);
+        if (error) throw error;
+        return data || [];
+      }catch(e){
+        // fallback: ambil data terbatas (RLS) lalu filter di sisi klien
+        const limited = await listHistoryWithUser(null);
+        return limited.filter(r => matchRowClient(r, params));
+      }
+    }
+
+    function renderBrowseRows(rows){
+      const body = document.querySelector('#browseResults tbody');
+      body.innerHTML = rows.length ? rows.map((r,i)=>`
+        <tr>
+          <td data-label="No">${i+1}</td>
+          <td data-label="Nomor">${r.nomor}</td>
+          <td data-label="Jenis">${r.jenis}</td>
+          <td data-label="Gudang">${r.gudang}</td>
+          <td data-label="Tanggal">${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
+          <td data-label="Pemeriksa">${r.pemeriksa}</td>
+          <td data-label="Petugas">${r.creator_username||''}</td>
+        </tr>`).join('') : '<tr><td data-label="Info">Tidak ada data</td></tr>';
     }
 
     // Login overlay show/hide
@@ -585,26 +684,46 @@
         }
       };
 
-      // Browse
-      el('btnBrowseModal').onclick = async ()=>{
-        const nom = el('browseNomor').value.trim();
-        showLoading(true, 'Memuat data…');
-        try {
-          const rows = await listHistoryWithUser(nom || undefined);
-          const body = document.querySelector('#browseResults tbody');
-          body.innerHTML = rows.length ? rows.map((r,i)=>`
-  <tr>
-    <td data-label="No">${i+1}</td>
-    <td data-label="Nomor">${r.nomor}</td>
-    <td data-label="Jenis">${r.jenis}</td>
-    <td data-label="Gudang">${r.gudang}</td>
-    <td data-label="Tanggal">${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
-    <td data-label="Pemeriksa">${r.pemeriksa}</td>
-    <td data-label="Petugas">${r.creator_username||''}</td>
-  </tr>`).join('') : '<tr><td data-label="Info">Tidak ada data</td></tr>';
-
-        } finally { showLoading(false); }
+      // Browse — actions
+      function resetBrowseForm(){
+        el('browseNomor').value = '';
+        el('browseJenis').value = '';
+        el('browseGudang').value = '';
+        el('browseFrom').value = '';
+        el('browseTo').value = '';
+        el('browsePemeriksa').value = '';
+        el('browsePetugas').value = '';
+      }
+      el('btnBrowseReset').onclick = ()=>{
+        resetBrowseForm();
+        document.querySelector('#browseResults tbody').innerHTML = '';
       };
+
+      async function doBrowse(){
+        const params = getBrowseParams();
+        showLoading(true, 'Mengambil data…');
+        try{
+          const rows = await browseFetchAll(params);
+          renderBrowseRows(rows);
+          if (!rows.length) showToast('Tidak ada data cocok','');
+        }catch(e){
+          console.error(e);
+          showToast('Gagal memuat data: ' + (e?.message||e), 'error');
+        }finally{
+          showLoading(false);
+        }
+      }
+
+      el('btnBrowseModal').onclick = doBrowse;
+      // Enter untuk eksekusi
+      ['browseNomor','browsePemeriksa','browsePetugas'].forEach(id=>{
+        el(id).addEventListener('keydown', (e)=>{ if(e.key==='Enter') doBrowse(); });
+      });
+      ['browseJenis','browseGudang','browseFrom','browseTo'].forEach(id=>{
+        el(id).addEventListener('change', ()=>{/* opsional: auto-run
+          doBrowse();
+        */});
+      });
 
       // Admin
       async function renderAdmin(){
@@ -748,32 +867,18 @@
       };
       btnCancel.onclick = ()=>{ editingUserId=null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false); };
 
-// Ganti Password dengan pengecekan session & auto re-login
+      // Ganti Password (tetap seperti 3.6)
       el('btnChangePass').onclick = () => {
-  const pass1 = el('accountNewPass').value.trim();
-  const pass2 = el('accountNewPass2').value.trim();
-
-  if (!pass1 || pass1.length < 6) {
-    showToast('Password minimal 6 karakter', 'error');
-    return;
-  }
-  if (pass1 !== pass2) {
-    showToast('Konfirmasi password tidak cocok', 'error');
-    return;
-  }
-
-  // Langsung update UI tanpa menunggu Supabase
-  showToast('Password berhasil diganti, refresh halaman', 'success');
-  el('accountNewPass').value = '';
-  el('accountNewPass2').value = '';
-  el('accountOverlay').classList.remove('show');
-
-  // Kirim update password ke Supabase di belakang layar
-  supabase.auth.updateUser({ password: pass1 })
-    .catch(err => {
-      console.error('Gagal update password:', err);
-    });
-};
+        const pass1 = el('accountNewPass').value.trim();
+        const pass2 = el('accountNewPass2').value.trim();
+        if (!pass1 || pass1.length < 6) { showToast('Password minimal 6 karakter', 'error'); return; }
+        if (pass1 !== pass2) { showToast('Konfirmasi password tidak cocok', 'error'); return; }
+        showToast('Password berhasil diganti, refresh halaman', 'success');
+        el('accountNewPass').value = '';
+        el('accountNewPass2').value = '';
+        el('accountOverlay').classList.remove('show');
+        supabase.auth.updateUser({ password: pass1 }).catch(err => console.error('Gagal update password:', err));
+      };
     }); // DOMContentLoaded
   </script>
 
@@ -806,43 +911,38 @@
     order by username nulls last
   $$;
   GRANT EXECUTE ON FUNCTION public.admin_list_users() TO authenticated;
+
+  ----------------------------------------------------------------------
+  TAMBAHAN BARU (untuk Browse lintas gudang & multi-parameter)
+  Jalankan ini jika ingin Browse menampilkan SEMUA data (lintas gudang).
+  ----------------------------------------------------------------------
+  CREATE OR REPLACE FUNCTION public.browse_history_all(
+    nomor_in text default null,
+    jenis_in text default null,
+    gudang_in text default null,
+    from_date date default null,
+    to_date date default null,
+    pemeriksa_in text default null,
+    petugas_in text default null
+  )
+  RETURNS TABLE (id bigint, nomor text, jenis text, gudang text, tanggal timestamptz, pemeriksa text, created_by uuid, creator_username text)
+  LANGUAGE sql SECURITY DEFINER SET search_path=public AS $$
+    select h.id, h.nomor, h.jenis, h.gudang, h.tanggal, h.pemeriksa, h.created_by, p.username as creator_username
+    from public.penunjukan_history h
+    join public.profiles p on p.id = h.created_by
+    where (nomor_in   is null or h.nomor = nomor_in)
+      and (jenis_in   is null or h.jenis = jenis_in)
+      and (gudang_in  is null or h.gudang = gudang_in)
+      and (from_date  is null or h.tanggal::date >= from_date)
+      and (to_date    is null or h.tanggal::date <= to_date)
+      and (pemeriksa_in is null or h.pemeriksa ilike '%'||pemeriksa_in||'%')
+      and (petugas_in   is null or p.username ilike '%'||petugas_in||'%')
+    order by h.id desc
+  $$;
+  GRANT EXECUTE ON FUNCTION public.browse_history_all(text,text,text,date,date,text,text) TO authenticated;
+
+  -- CATATAN: Fungsi di atas SECURITY DEFINER → semua user authenticated bisa melihat semua data via Browse.
+  -- Jika ingin dibatasi hanya admin, tambahkan "where public.is_admin()" pada klausa WHERE (atau bungkus dengan if).
   -->
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
