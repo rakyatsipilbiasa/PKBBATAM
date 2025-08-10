@@ -695,12 +695,11 @@
 
   btn.disabled = true;
   btn.textContent = 'Menyimpan…';
-  showLoading(true, 'Menyimpan  password…');
-        showToast('Password berhasil diganti','success');
+        showToast('Password berhasil diganti, refresh halaman','success');
         return;
 
   // Safety net: kalau ada edge case, loader tetap dimatikan
-  const killTimer = setTimeout(stop, 10);
+  const killTimer = setTimeout(stop, 5);
 
   try {
     const { error } = await supabase.auth.updateUser({ password: p1 });
@@ -757,6 +756,7 @@
   -->
 </body>
 </html>
+
 
 
 
