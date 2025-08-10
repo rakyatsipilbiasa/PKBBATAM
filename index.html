@@ -53,7 +53,7 @@
 
     /* Layout: riwayat lebih lebar dari input */
     main {
-      flex: 1; max-width: 1200px; margin: 1.2rem auto; padding: 0 1rem;
+      flex: 1; max-width: 1300px; margin: 1.2rem auto; padding: 0 1rem;
       display: grid; grid-template-columns: minmax(300px, 38%) minmax(360px, 62%); gap: 1rem;
     }
     @media (max-width: 950px){
@@ -70,9 +70,9 @@
     input:focus, select:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 5px rgba(0,45,98,0.25); }
     p.info { margin-top: .6rem; font-size: .92rem; color: var(--accent-blue); font-weight: 600; }
 
-    .table-wrapper { max-height: 60vh; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; margin-top: .6rem; }
+    .table-wrapper { max-height: 90vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 8px; margin-top: .6rem; }
     table { width: 100%; border-collapse: collapse; font-size: .9rem; table-layout: auto; }
-    th, td { padding: .55rem .6rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+    th, td { padding: .55rem .6rem; border-bottom: 1px solid var(--border); text-align: center; vertical-align: center; }
     th { color: var(--accent-gold); position: sticky; top: 0; background: var(--panel-bg); z-index: 1; }
     tr:nth-child(even) { background: rgba(0,45,98,0.05); }
 
@@ -742,6 +742,7 @@
   -->
 </body>
 </html>
+
 
 
 
