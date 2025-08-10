@@ -77,6 +77,16 @@
     width:100%; display:flex; gap:.5rem; flex-wrap:wrap;
   }
   .header-buttons > button{ font-size:.86rem; padding:.46rem .7rem; }
+  #browseOverlay .modal > div[style*="grid-template-columns"] > div{
+    min-width: 0;
+  }
+  #browseOverlay .modal > div[style*="grid-template-columns"] input,
+  #browseOverlay .modal > div[style*="grid-template-columns"] select{
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
 
   /* Panel full width & pad nyaman */
   main{ grid-template-columns: 1fr; gap:.9rem; padding: 0 .6rem; max-width: 100%; }
@@ -946,3 +956,4 @@
   -->
 </body>
 </html>
+
