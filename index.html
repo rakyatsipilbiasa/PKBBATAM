@@ -698,7 +698,7 @@ el('btnChangePass').onclick = async () => {
   showLoading(true, 'Menyimpan password…');
 
   // Safety net: kalau ada edge case, loader tetap dimatikan
-  const killTimer = setTimeout(stop, 6000);
+  const killTimer = setTimeout(stop, 1);
 
   try {
     const { error } = await supabase.auth.updateUser({ password: p1 });
@@ -755,6 +755,7 @@ el('btnChangePass').onclick = async () => {
   -->
 </body>
 </html>
+
 
 
 
