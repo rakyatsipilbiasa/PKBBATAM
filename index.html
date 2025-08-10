@@ -431,23 +431,23 @@
       el('adminGudangPreview').innerHTML = '<option value="">-- Pilih --</option>'+gudangList.map(g=>`<option>${g}</option>`).join('');
     }
     async function renderRiwayat(nomor){
-      showLoading(true, 'Memuat riwayat…');
-      try {
-        const rows = await listHistoryWithUser(nomor);
-        tbodyRiwayat.innerHTML = rows.length ? rows.map((r,i)=>`
-          <tr>
-            <td>${i+1}</td>
-            <td>${r.nomor}</td>
-            <td>${r.jenis}</td>
-            <td>${r.gudang}</td>
-            <td>${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
-            <td>${r.pemeriksa}</td>
-            <td>${r.creator_username || ''}</td>
-          </tr>`).join('') : '<tr><td colspan="7">Belum ada penunjukan</td></tr>';
-      } finally {
-        showLoading(false);
-      }
-    }
+  showLoading(true, 'Memuat riwayat…');
+  try {
+    const rows = await listHistoryWithUser(nomor);
+    tbodyRiwayat.innerHTML = rows.length ? rows.map((r,i)=>`
+      <tr>
+        <td data-label="No">${i+1}</td>
+        <td data-label="Nomor">${r.nomor}</td>
+        <td data-label="Jenis">${r.jenis}</td>
+        <td data-label="Gudang">${r.gudang}</td>
+        <td data-label="Tanggal">${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
+        <td data-label="Pemeriksa">${r.pemeriksa}</td>
+        <td data-label="Petugas">${r.creator_username || ''}</td>
+      </tr>`).join('') : '<tr><td data-label="Info">Belum ada penunjukan</td></tr>';
+  } finally {
+    showLoading(false);
+  }
+}
     async function updateTotal(){
       const g = el('gudang').value; if(!g){ el('totalTersisa').innerText = '0'; return; }
       const n = await getPoolRemainingCount(g); el('totalTersisa').innerText = n;
@@ -591,11 +591,16 @@
           const rows = await listHistoryWithUser(nom || undefined);
           const body = document.querySelector('#browseResults tbody');
           body.innerHTML = rows.length ? rows.map((r,i)=>`
-            <tr>
-              <td>${i+1}</td><td>${r.nomor}</td><td>${r.jenis}</td>
-              <td>${r.gudang}</td><td>${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
-              <td>${r.pemeriksa}</td><td>${r.creator_username||''}</td>
-            </tr>`).join('') : '<tr><td colspan="7">Tidak ada data</td></tr>';
+  <tr>
+    <td data-label="No">${i+1}</td>
+    <td data-label="Nomor">${r.nomor}</td>
+    <td data-label="Jenis">${r.jenis}</td>
+    <td data-label="Gudang">${r.gudang}</td>
+    <td data-label="Tanggal">${new Date(r.tanggal).toLocaleDateString('id-ID')}</td>
+    <td data-label="Pemeriksa">${r.pemeriksa}</td>
+    <td data-label="Petugas">${r.creator_username||''}</td>
+  </tr>`).join('') : '<tr><td data-label="Info">Tidak ada data</td></tr>';
+
         } finally { showLoading(false); }
       };
 
@@ -802,6 +807,7 @@
   -->
 </body>
 </html>
+
 
 
 
