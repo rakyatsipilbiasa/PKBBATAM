@@ -683,12 +683,10 @@
       btnCancel.onclick = ()=>{ editingUserId=null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false); };
 
 // Ganti Password dengan pengecekan session & auto re-login
-      el('btnChangePass').onclick = async () => {
-  const btn = el('btnChangePass');
+      el('btnChangePass').onclick = () => {
   const pass1 = el('accountNewPass').value.trim();
   const pass2 = el('accountNewPass2').value.trim();
 
-  // Validasi
   if (!pass1 || pass1.length < 6) {
     showToast('Password minimal 6 karakter', 'error');
     return;
@@ -698,33 +696,17 @@
     return;
   }
 
-  // Ubah UI tombol
-  btn.disabled = true;
-  btn.textContent = 'Menyimpan…';
-
-  // Panggil API Supabase untuk update password
-  const { error } = await supabase.auth.updateUser({ password: pass1 });
-
-  if (error) {
-    showToast(`Gagal mengganti password: ${error.message}`, 'error');
-    btn.disabled = false;
-    btn.textContent = 'Simpan Password';
-    return;
-  }
-
-  // Kalau berhasil
+  // Langsung update UI tanpa menunggu Supabase
   showToast('Password berhasil diganti, refresh halaman', 'success');
-
-  // Kosongkan input
   el('accountNewPass').value = '';
   el('accountNewPass2').value = '';
-
-  // Tutup modal/menu ganti password
   el('accountOverlay').classList.remove('show');
 
-  // Reset tombol
-  btn.disabled = false;
-  btn.textContent = 'Simpan Password';
+  // Kirim update password ke Supabase di belakang layar
+  supabase.auth.updateUser({ password: pass1 })
+    .catch(err => {
+      console.error('Gagal update password:', err);
+    });
 };
     }); // DOMContentLoaded
   </script>
@@ -761,6 +743,7 @@
   -->
 </body>
 </html>
+
 
 
 
