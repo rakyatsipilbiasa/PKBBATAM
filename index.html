@@ -683,7 +683,7 @@
       btnCancel.onclick = ()=>{ editingUserId=null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false); };
 
 // Ganti Password dengan pengecekan session & auto re-login
-el('btnChangePass').onclick = async () => {
+      el('btnChangePass').onclick = async () => {
   const btn = el('btnChangePass');
   const p1  = el('accountNewPass').value.trim();
   const p2  = el('accountNewPass2').value.trim();
@@ -695,11 +695,28 @@ el('btnChangePass').onclick = async () => {
 
   btn.disabled = true;
   btn.textContent = 'Menyimpan…';
-  showToast(true, 'Menyimpan password…','success');
+  showLoading(true, 'Berhasil simpan  password…');
+
+  // Safety net: kalau ada edge case, loader tetap dimatikan
+  const killTimer = setTimeout(stop, 1);
+
+  try {
+    const { error } = await supabase.auth.updateUser({ password: p1 });
+    if (error) throw error;
+
+    // Refresh token/session agar state konsisten
+    await supabase.auth.refreshSession().catch(()=>{});
+
+    // Berhasil
+    el('accountNewPass').value = '';
+    el('accountNewPass2').value = '';
+    showToast('Password berhasil diubah','success');
+    el('accountOverlay').classList.remove('show');
   } catch (e) {
     showToast('Gagal mengubah password: ' + (e?.message || e), 'error');
   } finally {
     clearTimeout(killTimer);
+    showToast('Password Berhasil Diganti');
     stop();
   }
 };
@@ -739,6 +756,7 @@ el('btnChangePass').onclick = async () => {
   -->
 </body>
 </html>
+
 
 
 
