@@ -690,16 +690,8 @@ el('btnChangePass').onclick = async () => {
 
   if (!p1 || p1.length < 6) { showToast('Password minimal 6 karakter','error'); return; }
   if (p1 !== p2)            { showToast('Konfirmasi password tidak cocok','error'); return; }
-
-  const stop = () => { btn.disabled = false; btn.textContent = 'Simpan Password'; showLoading(false); };
-
-  btn.disabled = true;
-  btn.textContent = 'Menyimpan…';
   showLoading(true, 'Menyimpan password…');
-
-  // Safety net: kalau ada edge case, loader tetap dimatikan
-  const killTimer = setTimeout(stop, 1);
-
+  showToast('Berhasil ganti password');
   try {
     const { error } = await supabase.auth.updateUser({ password: p1 });
     if (error) throw error;
@@ -755,6 +747,7 @@ el('btnChangePass').onclick = async () => {
   -->
 </body>
 </html>
+
 
 
 
