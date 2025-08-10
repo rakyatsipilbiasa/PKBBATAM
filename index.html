@@ -682,16 +682,18 @@
       };
       btnCancel.onclick = ()=>{ editingUserId=null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false); };
 
-      // === PERBAIKI: handler ganti password yang selalu mematikan loader ===
+// Ganti Password
 el('btnChangePass').onclick = async () => {
-  const btn = el('btnChangePass');
-  const p1  = el('accountNewPass').value.trim();
-  const p2  = el('accountNewPass2').value.trim();
+  const p1 = el('accountNewPass').value.trim();
+  const p2 = el('accountNewPass2').value.trim();
 
-  if (!p1 || p1.length < 6) { showToast('Password minimal 6 karakter','error'); return; }
-  if (p1 !== p2)            { showToast('Konfirmasi password tidak cocok','error'); return; }
+  // Validasi input
+  if (!p1 || p1.length < 6) return showToast('Password minimal 6 karakter','error');
+  if (p1 !== p2)            return showToast('Konfirmasi password tidak cocok','error');
+
+  // Tampilkan loading
   showLoading(true, 'Menyimpan password…');
-  showToast('Berhasil ganti password');
+  
   try {
     const { error } = await supabase.auth.updateUser({ password: p1 });
     if (error) throw error;
@@ -699,19 +701,20 @@ el('btnChangePass').onclick = async () => {
     // Refresh token/session agar state konsisten
     await supabase.auth.refreshSession().catch(()=>{});
 
-    // Berhasil
+    // Reset input
     el('accountNewPass').value = '';
     el('accountNewPass2').value = '';
-    showToast('Password berhasil diubah','success');
+
+    // Tutup overlay & tampilkan sukses
     el('accountOverlay').classList.remove('show');
+    showToast('Password berhasil diubah', 'success');
+
   } catch (e) {
     showToast('Gagal mengubah password: ' + (e?.message || e), 'error');
   } finally {
-    clearTimeout(killTimer);
-    stop();
+    showLoading(false);
   }
 };
-
     }); // DOMContentLoaded
   </script>
 
@@ -747,6 +750,7 @@ el('btnChangePass').onclick = async () => {
   -->
 </body>
 </html>
+
 
 
 
