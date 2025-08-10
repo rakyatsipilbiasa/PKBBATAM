@@ -56,43 +56,48 @@
       flex: 1; max-width: 1400px; margin: 1.2rem auto; padding: 0 1rem;
       display: grid; grid-template-columns: minmax(300px, 38%) minmax(360px, 62%); gap: 1rem;
     }
-    @media (max-width: 640px){
-
-  /* Header full width, bukan kotak “mengambang” */
+    /* ==== MOBILE HEADER FULL-BLEED FIX ==== */
+@media (max-width: 640px){
+  /* header tetap sticky tapi background-nya dibentang full layar */
   header{
-    position: sticky; top:0; left:0; right:0;
-    width: 100vw;
-    margin: 0; border-radius: 0;
-    box-shadow: none;           /* hilangkan efek kartu */
-    padding: 0;                 /* padding pindah ke dalam */
+    position: sticky;
+    top: 0;
+    z-index: 1500;
+    padding: .6rem .8rem;   /* isi header */
+    box-shadow: none;       /* hilangkan efek “card” */
   }
-  header .title-wrapper h1 { font-size: 1.05rem; line-height: 1.15; }
-  header .title-wrapper h2 { font-size: .72rem; }
+  header::before{
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    left: -9999px;          /* bentang ke kiri-kanan jauh */
+    right: -9999px;
+    background: rgba(0,45,98,0.95);
+    z-index: -1;            /* di belakang konten header */
+  }
 
-  /* Susunan isi header */
-  header{ display:block; }      /* pecah jadi 2 baris di mobile */
-  .title-wrapper{ padding: .6rem .8rem; }
+  /* rapikan konten header di mobile */
+  header{ display: block; }
+  .title-wrapper{ padding-bottom: .4rem; }
   .header-buttons{
-    display:flex; flex-wrap:wrap; gap:.4rem;
-    padding: 0 .8rem .6rem;
-  }
-  .header-buttons .btn,
-  .header-buttons button{
-    padding:.44rem .7rem; font-size:.86rem; border-radius:8px;
+    display: flex; flex-wrap: wrap; gap: .4rem;
   }
 
-  /* Layout konten */
-  main{ grid-template-columns: 1fr; padding: 0 .8rem; }
-  .panel{ padding: .9rem 1rem; }
-
-  /* Tabel: rapi & bisa geser kanan-kiri kalau overflow */
+  /* tabel tetap bisa scroll horizontal jika kepanjangan */
   .table-wrapper{
-    overflow-x: auto;           /* horizontal scroll bila perlu */
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  table{ font-size: .88rem; table-layout: auto; }
-  th, td{ padding:.5rem .55rem; white-space: nowrap; } /* 1 baris per sel */
+  th, td{ white-space: nowrap; }
 }
+
+/* aman untuk notch/iPhone */
+@supports (padding: max(0px)){
+  @media (max-width: 640px){
+    header{ padding-top: max(.6rem, env(safe-area-inset-top)); }
+  }
+}
+
 
     .panel { background: var(--panel-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.2rem; box-shadow: var(--shadow); }
     .panel h3 { margin-bottom: .8rem; color: var(--accent-blue); font-size: 1.02rem; font-weight: 700; letter-spacing: .2px; text-transform: uppercase; }
@@ -776,6 +781,7 @@
   -->
 </body>
 </html>
+
 
 
 
