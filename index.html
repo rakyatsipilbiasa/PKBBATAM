@@ -701,12 +701,7 @@
     el('accountOverlay').classList.remove('show');
         btn.disabled = false;
   btn.textContent = 'Simpan Password';
-  } catch (e) {
-    showToast('Gagal mengubah password: ' + (e?.message || e), 'error');
-  } finally {
-    clearTimeout(killTimer);
-    stop();
-  }
+  } 
 };
 
     }); // DOMContentLoaded
@@ -744,6 +739,7 @@
   -->
 </body>
 </html>
+
 
 
 
