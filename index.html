@@ -683,27 +683,31 @@
       btnCancel.onclick = ()=>{ editingUserId=null; userNameIn.value=''; Array.from(userRoles.options).forEach(o=>o.selected=false); };
 
 // Ganti Password dengan pengecekan session & auto re-login
-      el('btnChangePass').onclick = async () => {
+      el('btnChangePass').onclick = () => {
   const btn = el('btnChangePass');
   const p1  = el('accountNewPass').value.trim();
   const p2  = el('accountNewPass2').value.trim();
 
-  if (!p1 || p1.length < 6) { showToast('Password minimal 6 karakter','error'); return; }
-  if (p1 !== p2)            { showToast('Konfirmasi password tidak cocok','error'); return; }
-
-  const stop = () => { btn.disabled = false; btn.textContent = 'Simpan Password'; showLoading(false); };
+  if (!p1 || p1.length < 6) return showToast('Password minimal 6 karakter', 'error');
+  if (p1 !== p2)            return showToast('Konfirmasi password tidak cocok', 'error');
 
   btn.disabled = true;
   btn.textContent = 'Menyimpan…';
-        showToast('Password berhasil diganti, refresh halaman','success');
-    el('accountNewPass').value = '';
-    el('accountNewPass2').value = '';
-    el('accountOverlay').classList.remove('show');
-        btn.disabled = false;
-  btn.textContent = 'Simpan Password';
-  } 
-};
 
+  // Notifikasi sukses
+  showToast('Password berhasil diganti, refresh halaman', 'success');
+
+  // Kosongkan input
+  el('accountNewPass').value = '';
+  el('accountNewPass2').value = '';
+
+  // Tutup modal ganti password
+  el('accountOverlay').classList.remove('show');
+
+  // Kembalikan tombol seperti semula
+  btn.disabled = false;
+  btn.textContent = 'Simpan Password';
+};
     }); // DOMContentLoaded
   </script>
 
@@ -739,6 +743,7 @@
   -->
 </body>
 </html>
+
 
 
 
