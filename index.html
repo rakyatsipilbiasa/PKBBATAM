@@ -113,7 +113,7 @@
     border-radius: 8px;
   }
   table{
-    min-width: 760px;           /* jaga kolom tetap proporsional seperti di web */
+    min-width: 480px;           /* jaga kolom tetap proporsional seperti di web */
     table-layout: auto;
   }
   th, td{
@@ -125,7 +125,7 @@
 
 /* Safe area (iPhone notch) */
 @supports (padding: max(0px)){
-  @media (max-width: 640px){
+  @media (max-width: 1400px){
     header{ padding-top: max(.75rem, env(safe-area-inset-top)); }
   }
 }
@@ -812,6 +812,7 @@
   -->
 </body>
 </html>
+
 
 
 
